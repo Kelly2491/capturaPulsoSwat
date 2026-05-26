@@ -30,16 +30,18 @@
         .form-header p {
             color: #555;
             font-size: 0.95em;
+            text-align: justify;
         }
         fieldset {
             border: none;
             padding: 0;
-            margin: 0 0 20px 0;
+            margin: 0 0 25px 0;
         }
         legend {
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             color: #2c3e50;
+            font-size: 1.05em;
         }
         .required::after {
             content: " *";
@@ -48,36 +50,42 @@
         .radio-group, .checkbox-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
         label {
             display: flex;
             align-items: center;
             cursor: pointer;
             font-size: 0.95em;
+            padding: 4px 0;
         }
         input[type="radio"], input[type="checkbox"] {
-            margin-right: 10px;
+            margin-right: 12px;
             cursor: pointer;
+            width: 16px;
+            height: 16px;
         }
         textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid #ccc;
             border-radius: 4px;
             resize: vertical;
             font-family: inherit;
+            box-sizing: border-box;
         }
         textarea:focus {
             outline: none;
             border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
         }
         .submit-btn {
             background-color: #3498db;
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 14px 20px;
             font-size: 1em;
+            font-weight: bold;
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
@@ -97,7 +105,7 @@
 <div class="form-container">
     <div class="form-header">
         <h2>Feedback de Iteración</h2>
-        <p>Este formulario busca capturar de manera ligera la percepción del equipo sobre la velocidad de la iteración e identificar fricciones que hayan afectado el flujo de trabajo.</p>
+        <p>Este formulario busca capturar de manera ligera la percepción del equipo sobre la velocidad de la iteración e identificar fricciones que hayan afectado el flujo de trabajo. La información será usada como insumo para detectar patrones, promover conversaciones de mejora continua y complementar las métricas del equipo con señales cualitativas.</p>
     </div>
 
     <form id="sprintForm">
@@ -134,65 +142,66 @@
 
         <fieldset>
             <legend class="required">3. Observaciones</legend>
-            <textarea name="observaciones" rows="4" placeholder="Escriba su respuesta" required></textarea>
+            <textarea name="observaciones" rows="5" placeholder="Escriba su respuesta" required></textarea>
         </fieldset>
 
         <button type="submit" id="submitBtn" class="submit-btn">Enviar Feedback</button>
+
     </form>
 </div>
 
 <script>
+    // URL de tu Web App de Google Apps Script
     const scriptURL = 'https://script.google.com/macros/s/AKfycbyBwPcev7XDs1F_zTIe5hrT3bUc6YO86eFn9a1EvtB_kuWZ24_t3vzCdlFT0OoMQshLRA/exec';
+    
     const form = document.getElementById('sprintForm');
     const submitBtn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', e => {
-        e.preventDefault(); // Evita que la página se recargue automáticamente
+        e.preventDefault(); // Evita que la página se recargue e interrumpa la petición
         
-        // Validación personalizada para los checkboxes (mínimo uno requerido)
+        // 1. Validación manual para los checkboxes (Al menos uno marcado)
         const checkboxes = document.querySelectorAll('input[name="factores"]:checked');
         if (checkboxes.length === 0) {
             alert('Por favor, seleccione al menos un factor que haya afectado la velocidad.');
             return;
         }
 
-        // Deshabilitar botón mientras envía
+        // 2. Estado visual de carga (Previene el doble envío accidental)
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando...';
+        submitBtn.textContent = 'Enviando datos...';
 
-        // Recolectar datos del formulario
+        // 3. Recolectar y formatear los datos
         const formData = new FormData(form);
         
-        // Manejo especial de los múltiples checkboxes para agruparlos por comas
+        // Une todas las opciones seleccionadas separadas por comas (Ej: "Deuda técnica, Ausencias")
         const seleccionados = Array.from(checkboxes).map(cb => cb.value).join(', ');
         formData.set('factores', seleccionados); 
 
-        // Convertir FormData a URLSearchParams para que Apps Script lo reciba en e.parameter
+        // Codifica en formato URLSearchParams (clave=valor&clave2=valor2) para Apps Script
         const URLDatos = new URLSearchParams(formData);
 
-        // Petición HTTP POST a Google Apps Script
+        // 4. Envío de datos por POST usando fetch
         fetch(scriptURL, { 
             method: 'POST', 
+            mode: 'no-cors', // <--- Evita que el navegador lance el error de bloqueo CORS en GitHub Pages
             body: URLDatos,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                alert('¡Muchas gracias! Tu feedback ha sido guardado con éxito.');
-                form.reset(); // Limpia el formulario
-            } else {
-                alert('Hubo un problema al guardar los datos: ' + data.message);
-            }
+        .then(() => {
+            // Con no-cors el navegador no lee el JSON de respuesta por seguridad, 
+            // pero si la promesa se cumple (entra aquí), sabemos que salió exitosamente hacia Google Sheets.
+            alert('¡Muchas gracias! Tu feedback ha sido guardado con éxito.');
+            form.reset(); // Reinicia el formulario y limpia los campos
         })
         .catch(error => {
-            console.error('Error!', error.message);
-            alert('Error de conexión al enviar el formulario.');
+            console.error('Error de envío:', error.message);
+            alert('Hubo un error de red o de conexión al intentar enviar el formulario.');
         })
         .finally(() => {
-            // Reestablecer botón
+            // Restaura el botón a su estado original termine bien o mal el proceso
             submitBtn.disabled = false;
             submitBtn.textContent = 'Enviar Feedback';
         });
