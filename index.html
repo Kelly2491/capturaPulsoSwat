@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback del Sprint</title>
+    <title>Feedback de Iteración</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            background-color: #f5f7fa;
+            color: #333333;
             line-height: 1.6;
             padding: 20px;
         }
@@ -18,7 +18,8 @@
             margin: 0 auto;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-top: 5px solid #2D6DF6;
         }
         .form-header {
             margin-bottom: 25px;
@@ -28,7 +29,7 @@
             color: #2c3e50;
         }
         .form-header p {
-            color: #555;
+            color: #555555;
             font-size: 0.95em;
             text-align: justify;
         }
@@ -57,18 +58,19 @@
             align-items: center;
             cursor: pointer;
             font-size: 0.95em;
-            padding: 4px 0;
+            padding: 2px 0;
         }
         input[type="radio"], input[type="checkbox"] {
             margin-right: 12px;
             cursor: pointer;
             width: 16px;
             height: 16px;
+            accent-color: #2D6DF6;
         }
         textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid #888B8D;
             border-radius: 4px;
             resize: vertical;
             font-family: inherit;
@@ -76,12 +78,12 @@
         }
         textarea:focus {
             outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+            border-color: #2D6DF6;
+            box-shadow: 0 0 5px rgba(45, 109, 246, 0.3);
         }
         .submit-btn {
-            background-color: #3498db;
-            color: white;
+            background-color: #2D6DF6;
+            color: #ffffff;
             border: none;
             padding: 14px 20px;
             font-size: 1em;
@@ -92,10 +94,10 @@
             transition: background-color 0.3s ease;
         }
         .submit-btn:hover {
-            background-color: #2980b9;
+            background-color: #1a56d1;
         }
         .submit-btn:disabled {
-            background-color: #bdc3c7;
+            background-color: #888B8D;
             cursor: not-allowed;
         }
     </style>
@@ -146,62 +148,57 @@
         </fieldset>
 
         <button type="submit" id="submitBtn" class="submit-btn">Enviar Feedback</button>
-
     </form>
 </div>
 
 <script>
-    // URL de tu Web App de Google Apps Script
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbyBwPcev7XDs1F_zTIe5hrT3bUc6YO86eFn9a1EvtB_kuWZ24_t3vzCdlFT0OoMQshLRA/exec';
+    // Tu nueva URL de ejecución actualizada
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
     
     const form = document.getElementById('sprintForm');
     const submitBtn = document.getElementById('submitBtn');
 
     form.addEventListener('submit', e => {
-        e.preventDefault(); // Evita que la página se recargue e interrumpa la petición
+        e.preventDefault(); 
         
-        // 1. Validación manual para los checkboxes (Al menos uno marcado)
+        // Validación manual de los checkboxes de selección múltiple
         const checkboxes = document.querySelectorAll('input[name="factores"]:checked');
         if (checkboxes.length === 0) {
             alert('Por favor, seleccione al menos un factor que haya afectado la velocidad.');
             return;
         }
 
-        // 2. Estado visual de carga (Previene el doble envío accidental)
+        // Cambiar estado visual del botón para evitar múltiples envíos continuos
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Enviando datos...';
+        submitBtn.textContent = 'Guardando respuesta...';
 
-        // 3. Recolectar y formatear los datos
         const formData = new FormData(form);
         
-        // Une todas las opciones seleccionadas separadas por comas (Ej: "Deuda técnica, Ausencias")
+        // Une los factores seleccionados con comas en un solo string plano
         const seleccionados = Array.from(checkboxes).map(cb => cb.value).join(', ');
         formData.set('factores', seleccionados); 
 
-        // Codifica en formato URLSearchParams (clave=valor&clave2=valor2) para Apps Script
+        // Transforma a formato x-www-form-urlencoded compatible con e.parameter
         const URLDatos = new URLSearchParams(formData);
 
-        // 4. Envío de datos por POST usando fetch
         fetch(scriptURL, { 
             method: 'POST', 
-            mode: 'no-cors', // <--- Evita que el navegador lance el error de bloqueo CORS en GitHub Pages
+            mode: 'no-cors', // Desactiva la restricción CORS del navegador para asegurar el envío exitoso
             body: URLDatos,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         })
         .then(() => {
-            // Con no-cors el navegador no lee el JSON de respuesta por seguridad, 
-            // pero si la promesa se cumple (entra aquí), sabemos que salió exitosamente hacia Google Sheets.
+            // Bajo el modo no-cors la petición se completa a ciegas con éxito en el destino
             alert('¡Muchas gracias! Tu feedback ha sido guardado con éxito.');
-            form.reset(); // Reinicia el formulario y limpia los campos
+            form.reset();
         })
         .catch(error => {
-            console.error('Error de envío:', error.message);
-            alert('Hubo un error de red o de conexión al intentar enviar el formulario.');
+            console.error('Error detectado:', error.message);
+            alert('No se pudo establecer conexión con el servidor de captura.');
         })
         .finally(() => {
-            // Restaura el botón a su estado original termine bien o mal el proceso
             submitBtn.disabled = false;
             submitBtn.textContent = 'Enviar Feedback';
         });
