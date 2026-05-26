@@ -86,6 +86,10 @@
         .submit-btn:hover {
             background-color: #2980b9;
         }
+        .submit-btn:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body>
@@ -93,10 +97,10 @@
 <div class="form-container">
     <div class="form-header">
         <h2>Feedback de Iteración</h2>
-        <p>Este formulario busca capturar de manera ligera la percepción del equipo sobre la velocidad de la iteración e identificar fricciones que hayan afectado el flujo de trabajo. La información será usada como insumo para detectar patrones, promover conversaciones de mejora continua y complementar las métricas del equipo con señales cualitativas.</p>
+        <p>Este formulario busca capturar de manera ligera la percepción del equipo sobre la velocidad de la iteración e identificar fricciones que hayan afectado el flujo de trabajo.</p>
     </div>
 
-    <form action="#" method="POST">
+    <form id="sprintForm">
         
         <fieldset>
             <legend class="required">1. ¿Cómo sintió el equipo la velocidad de este Sprint?</legend>
@@ -112,19 +116,19 @@
         <fieldset>
             <legend class="required">2. ¿Qué factores afectaron la velocidad? (marca todos los que aplican)</legend>
             <div class="checkbox-group">
-                <label><input type="checkbox" name="factores[]" value="Historias poco claras"> Historias poco claras</label>
-                <label><input type="checkbox" name="factores[]" value="Cambios de alcance"> Cambios de alcance</label>
-                <label><input type="checkbox" name="factores[]" value="Falta de backlog"> Falta de backlog</label>
-                <label><input type="checkbox" name="factores[]" value="Bloqueos técnicos"> Bloqueos técnicos</label>
-                <label><input type="checkbox" name="factores[]" value="Dependencias externas"> Dependencias externas</label>
-                <label><input type="checkbox" name="factores[]" value="Deuda técnica"> Deuda técnica</label>
-                <label><input type="checkbox" name="factores[]" value="Fallas en pruebas"> Fallas en pruebas</label>
-                <label><input type="checkbox" name="factores[]" value="Fallas en producción"> Fallas en producción</label>
-                <label><input type="checkbox" name="factores[]" value="Carga excesiva"> Carga excesiva</label>
-                <label><input type="checkbox" name="factores[]" value="Ausencias"> Ausencias</label>
-                <label><input type="checkbox" name="factores[]" value="Movimiento de personas clave"> Movimiento de personas clave</label>
-                <label><input type="checkbox" name="factores[]" value="Curva de aprendizaje"> Curva de aprendizaje</label>
-                <label><input type="checkbox" name="factores[]" value="Muchas reuniones"> Muchas reuniones</label>
+                <label><input type="checkbox" name="factores" value="Historias poco claras"> Historias poco claras</label>
+                <label><input type="checkbox" name="factores" value="Cambios de alcance"> Cambios de alcance</label>
+                <label><input type="checkbox" name="factores" value="Falta de backlog"> Falta de backlog</label>
+                <label><input type="checkbox" name="factores" value="Bloqueos técnicos"> Bloqueos técnicos</label>
+                <label><input type="checkbox" name="factores" value="Dependencias externas"> Dependencias externas</label>
+                <label><input type="checkbox" name="factores" value="Deuda técnica"> Deuda técnica</label>
+                <label><input type="checkbox" name="factores" value="Fallas en pruebas"> Fallas en pruebas</label>
+                <label><input type="checkbox" name="factores" value="Fallas en producción"> Fallas en producción</label>
+                <label><input type="checkbox" name="factores" value="Carga excesiva"> Carga excesiva</label>
+                <label><input type="checkbox" name="factores" value="Ausencias"> Ausencias</label>
+                <label><input type="checkbox" name="factores" value="Movimiento de personas clave"> Movimiento de personas clave</label>
+                <label><input type="checkbox" name="factores" value="Curva de aprendizaje"> Curva de aprendizaje</label>
+                <label><input type="checkbox" name="factores" value="Muchas reuniones"> Muchas reuniones</label>
             </div>
         </fieldset>
 
@@ -133,10 +137,67 @@
             <textarea name="observaciones" rows="4" placeholder="Escriba su respuesta" required></textarea>
         </fieldset>
 
-        <button type="submit" class="submit-btn">Enviar Feedback</button>
-
+        <button type="submit" id="submitBtn" class="submit-btn">Enviar Feedback</button>
     </form>
 </div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyBwPcev7XDs1F_zTIe5hrT3bUc6YO86eFn9a1EvtB_kuWZ24_t3vzCdlFT0OoMQshLRA/exec';
+    const form = document.getElementById('sprintForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault(); // Evita que la página se recargue automáticamente
+        
+        // Validación personalizada para los checkboxes (mínimo uno requerido)
+        const checkboxes = document.querySelectorAll('input[name="factores"]:checked');
+        if (checkboxes.length === 0) {
+            alert('Por favor, seleccione al menos un factor que haya afectado la velocidad.');
+            return;
+        }
+
+        // Deshabilitar botón mientras envía
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+
+        // Recolectar datos del formulario
+        const formData = new FormData(form);
+        
+        // Manejo especial de los múltiples checkboxes para agruparlos por comas
+        const seleccionados = Array.from(checkboxes).map(cb => cb.value).join(', ');
+        formData.set('factores', seleccionados); 
+
+        // Convertir FormData a URLSearchParams para que Apps Script lo reciba en e.parameter
+        const URLDatos = new URLSearchParams(formData);
+
+        // Petición HTTP POST a Google Apps Script
+        fetch(scriptURL, { 
+            method: 'POST', 
+            body: URLDatos,
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                alert('¡Muchas gracias! Tu feedback ha sido guardado con éxito.');
+                form.reset(); // Limpia el formulario
+            } else {
+                alert('Hubo un problema al guardar los datos: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error!', error.message);
+            alert('Error de conexión al enviar el formulario.');
+        })
+        .finally(() => {
+            // Reestablecer botón
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Enviar Feedback';
+        });
+    });
+</script>
 
 </body>
 </html>
