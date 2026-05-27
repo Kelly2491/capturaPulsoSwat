@@ -294,8 +294,9 @@
         });
         formData.set('factores', factoresArray.join(', '));
 
-        fetch(scriptURL, { method: 'POST', body: formData })
-            .then(response => {
+fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
+            .then(() => {
+                // UX: Éxito
                 successMessage.style.display = 'block';
                 form.reset();
                 window.scrollTo(0, 0); 
@@ -305,6 +306,7 @@
                 console.error('Error!', error.message);
             })
             .finally(() => {
+                // UX: Restaurar botón
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Enviar Feedback';
             });
