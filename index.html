@@ -3,412 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Feedback de Iteración</title>
+    <title>Feedback del Sprint</title>
+    <!-- Fuente moderna de Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Variables de diseño */
         :root {
-            --color-primario: #2D6DF6; /* Azul SURA */
-            --color-fondo: #F4F6F8;
-            --color-superficie: #FFFFFF; /* Blanco puro */
-            --color-texto: #111827;
-            --color-texto-secundario: #888B8D; /* Gris neutro */
-            --color-borde: #E5E7EB;
-            --color-error: #EF4444;
-            --color-adecuada: #F59E0B; /* Amarillo para estado adecuado */
-            --sombra-suave: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            --transicion: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #d1d5db;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--color-fondo);
-            color: var(--color-texto);
-            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
-            padding: 40px 20px;
+            padding: 20px;
             display: flex;
             justify-content: center;
         }
 
-        .form-container {
-            background-color: var(--color-superficie);
-            max-width: 650px;
+        .container {
             width: 100%;
-            border-radius: 12px;
-            box-shadow: var(--sombra-suave);
-            overflow: hidden;
+            max-width: 700px;
         }
 
-        .form-header {
-            background-color: var(--color-primario);
-            color: var(--color-superficie);
-            padding: 30px 40px;
+        /* Encabezado azul */
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
-        .form-header h2 {
+        .header h1 {
             margin: 0 0 10px 0;
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 24px;
         }
 
-        .form-header p {
+        .header p {
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 15px;
             opacity: 0.9;
-            text-align: justify;
         }
 
-        .form-body {
-            padding: 40px;
+        /* Tarjetas de preguntas */
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
         }
 
-        .form-section {
-            margin-bottom: 35px;
-        }
-
-        .form-label {
-            display: block;
+        .question-title {
             font-weight: 600;
             margin-bottom: 15px;
-            font-size: 1.05rem;
-            color: var(--color-texto);
+            font-size: 16px;
         }
 
-        .required::after {
-            content: " *";
-            color: var(--color-error);
+        .required {
+            color: #ef4444;
         }
 
-        /* --- Estilos para Inputs de Texto --- */
+        /* Inputs de texto */
         input[type="text"], textarea {
             width: 100%;
-            padding: 14px;
-            border: 2px solid var(--color-borde);
+            padding: 12px;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.95rem;
-            color: var(--color-texto);
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
             box-sizing: border-box;
-            transition: var(--transicion);
-        }
-
-        textarea {
-            resize: vertical;
+            transition: border-color 0.3s ease;
         }
 
         input[type="text"]:focus, textarea:focus {
             outline: none;
-            border-color: var(--color-primario);
-            background-color: rgba(45, 109, 246, 0.02);
-            box-shadow: 0 0 5px rgba(45, 109, 246, 0.3);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        input[type="text"]::placeholder, textarea::placeholder {
-            color: #A1A1AA;
-        }
-
-        /* --- Estilos UX para Radio Buttons (Tarjetas) --- */
-        .radio-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-            gap: 12px;
-        }
-
-        .radio-option input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .radio-card {
+        /* Opciones de Velocidad (Píldoras) */
+        .radio-group {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 10px;
-            border: 2px solid var(--color-borde);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--color-texto-secundario);
-            transition: var(--transicion);
-            text-align: center;
-            height: 100%;
-            box-sizing: border-box;
-        }
-
-        .radio-option:hover .radio-card {
-            border-color: #CBD5E1;
-            background-color: #F8FAFC;
-        }
-
-        .radio-option input[type="radio"]:checked + .radio-card {
-            border-color: var(--color-primario);
-            background-color: rgba(45, 109, 246, 0.05);
-            color: var(--color-primario);
-            font-weight: 600;
-        }
-
-        /* Estado específico para 'Adecuada' (Amarillo) */
-        .radio-option input[value="Adecuada"]:checked + .radio-card {
-            border-color: var(--color-adecuada);
-            background-color: rgba(245, 158, 11, 0.08);
-            color: #D97706;
-        }
-
-        .radio-option input[type="radio"]:focus-visible + .radio-card {
-            outline: 2px solid var(--color-primario);
-            outline-offset: 2px;
-        }
-
-        /* --- Estilos UX para Checkboxes --- */
-        .checkbox-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .checkbox-option {
-            display: flex;
-            align-items: flex-start;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            transition: var(--transicion);
-        }
-
-        .checkbox-option:hover {
-            background-color: #F8FAFC;
-        }
-
-        .checkbox-option input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--color-texto-secundario);
-            border-radius: 4px;
-            margin: 0 12px 0 0;
-            display: grid;
-            place-content: center;
-            cursor: pointer;
-            transition: var(--transicion);
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .checkbox-option input[type="checkbox"]::before {
-            content: "";
-            width: 10px;
-            height: 10px;
-            transform: scale(0);
-            transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em var(--color-superficie);
-            background-color: transform;
-            transform-origin: bottom left;
-            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-        }
-
-        .checkbox-option input[type="checkbox"]:checked {
-            background-color: var(--color-primario);
-            border-color: var(--color-primario);
-        }
-
-        .checkbox-option input[type="checkbox"]:checked::before {
-            transform: scale(1.1);
-        }
-
-        .checkbox-label-text {
-            font-size: 0.95rem;
-            color: var(--color-texto);
-        }
-
-        /* --- Botones --- */
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 16px 24px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transicion);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
         }
 
-        .btn-submit {
-            background-color: var(--color-primario);
-            color: var(--color-superficie);
-            border: none;
-            flex: 2;
-        }
-
-        .btn-submit:hover {
-            background-color: #1a56d1;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(45, 109, 246, 0.3);
-        }
-
-        .btn-submit:disabled {
-            background-color: var(--color-texto-secundario);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-reset {
-            background-color: transparent;
-            color: var(--color-texto-secundario);
-            border: 2px solid var(--color-borde);
+        .radio-group label {
             flex: 1;
+            min-width: 100px;
+            text-align: center;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .btn-reset:hover {
-            background-color: #F8FAFC;
-            color: var(--color-texto);
-            border-color: var(--color-texto-secundario);
+        .radio-group input[type="radio"] {
+            display: none; /* Ocultamos el circulito nativo */
         }
 
-        /* Responsive móvil */
-        @media (max-width: 600px) {
-            body { padding: 15px; }
-            .form-header { padding: 25px; }
-            .form-body { padding: 25px; }
-            .checkbox-grid { grid-template-columns: 1fr; }
-            .button-group { flex-direction: column-reverse; }
+        .radio-group input[type="radio"]:checked + label {
+            background-color: #eff6ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* Grid de Checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Botón de Enviar */
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .submit-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* Mensaje de éxito oculto por defecto */
+        #successMessage {
+            display: none;
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #a7f3d0;
         }
     </style>
 </head>
 <body>
 
-<main class="form-container">
-    <header class="form-header">
-        <h2>Feedback del Sprint</h2>
+<div class="container">
+    <div class="header">
+        <h1>Feedback del Sprint</h1>
         <p>Captura rápida de la percepción del equipo sobre la velocidad de la iteración e identificación de fricciones. Tu retroalimentación impulsa nuestra mejora continua.</p>
-    </header>
+    </div>
 
-    <form id="sprintForm" class="form-body">
-        
-        <section class="form-section">
-            <label class="form-label required" for="nombre">Nombre del integrante</label>
-            <input type="text" id="nombre" name="nombre" placeholder="Ej. Juan Pérez" required>
-        </section>
+    <div id="successMessage">¡Gracias! Tu feedback ha sido registrado exitosamente.</div>
 
-        <section class="form-section">
-            <label class="form-label required" id="velocidad-label">1. ¿Cómo sintió el equipo la velocidad de este Sprint?</label>
-            <div class="radio-grid" role="group" aria-labelledby="velocidad-label">
-                <label class="radio-option"><input type="radio" name="velocidad" value="Muy baja" required><div class="radio-card">Muy baja</div></label>
-                <label class="radio-option"><input type="radio" name="velocidad" value="Baja"><div class="radio-card">Baja</div></label>
-                <label class="radio-option"><input type="radio" name="velocidad" value="Adecuada"><div class="radio-card">Adecuada</div></label>
-                <label class="radio-option"><input type="radio" name="velocidad" value="Alta"><div class="radio-card">Alta</div></label>
-                <label class="radio-option"><input type="radio" name="velocidad" value="Muy alta"><div class="radio-card">Muy alta</div></label>
-            </div>
-        </section>
-
-        <section class="form-section">
-            <label class="form-label required" id="factores-label">2. ¿Qué factores afectaron la velocidad en este sprint? <span style="font-weight: normal; font-size: 0.85em; color: var(--color-texto-secundario);">(marca todos los que aplican)</span></label>
-            <div class="checkbox-grid" role="group" aria-labelledby="factores-label">
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Historias poco claras"><span class="checkbox-label-text">Historias poco claras</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Cambios de alcance"><span class="checkbox-label-text">Cambios de alcance</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Falta de backlog"><span class="checkbox-label-text">Falta de backlog</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Bloqueos técnicos"><span class="checkbox-label-text">Bloqueos técnicos</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Dependencias externas"><span class="checkbox-label-text">Dependencias externas</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Deuda técnica"><span class="checkbox-label-text">Deuda técnica</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Fallas en pruebas"><span class="checkbox-label-text">Fallas en pruebas</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Fallas en producción"><span class="checkbox-label-text">Fallas en producción</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Carga excesiva"><span class="checkbox-label-text">Carga excesiva</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Ausencias"><span class="checkbox-label-text">Ausencias</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Movimiento personas clave"><span class="checkbox-label-text">Movimiento de personas clave</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Curva de aprendizaje"><span class="checkbox-label-text">Curva de aprendizaje</span></label>
-                <label class="checkbox-option"><input type="checkbox" name="factores" value="Muchas reuniones"><span class="checkbox-label-text">Muchas reuniones</span></label>
-            </div>
-        </section>
-
-        <section class="form-section">
-            <label class="form-label required" for="observaciones">3. Observaciones</label>
-            <textarea id="observaciones" name="observaciones" rows="4" placeholder="Comparte detalles adicionales sobre las fricciones o aciertos del sprint..." required></textarea>
-        </section>
-
-        <div class="button-group">
-            <button type="reset" class="btn btn-reset">Limpiar</button>
-            <button type="submit" id="submitBtn" class="btn btn-submit">
-                <span>Enviar Feedback</span>
-            </button>
+    <form id="sprintForm">
+        <!-- Tarjeta 1: Nombre -->
+        <div class="card">
+            <div class="question-title">Nombre del integrante <span class="required">*</span></div>
+            <input type="text" name="nombre" placeholder="Ej. Juan Pérez" required>
         </div>
 
+        <!-- Tarjeta 2: Velocidad -->
+        <div class="card">
+            <div class="question-title">1. ¿Cómo sintió el equipo la velocidad de este Sprint? <span class="required">*</span></div>
+            <div class="radio-group">
+                <input type="radio" id="muy_baja" name="velocidad" value="Muy baja" required>
+                <label for="muy_baja">Muy baja</label>
+
+                <input type="radio" id="baja" name="velocidad" value="Baja">
+                <label for="baja">Baja</label>
+
+                <input type="radio" id="adecuada" name="velocidad" value="Adecuada">
+                <label for="adecuada">Adecuada</label>
+
+                <input type="radio" id="alta" name="velocidad" value="Alta">
+                <label for="alta">Alta</label>
+
+                <input type="radio" id="muy_alta" name="velocidad" value="Muy alta">
+                <label for="muy_alta">Muy alta</label>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Factores -->
+        <div class="card">
+            <div class="question-title">2. ¿Qué factores afectaron la velocidad en este sprint? <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <div class="checkbox-grid">
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Historias poco claras"> Historias poco claras</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Cambios de alcance"> Cambios de alcance</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Falta de backlog"> Falta de backlog</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Bloqueos técnicos"> Bloqueos técnicos</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Dependencias externas"> Dependencias externas</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Deuda técnica"> Deuda técnica</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Fallas en pruebas"> Fallas en pruebas</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Fallas en producción"> Fallas en producción</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Carga excesiva"> Carga excesiva</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Ausencias"> Ausencias</label>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Observaciones -->
+        <div class="card">
+            <div class="question-title">3. Observaciones adicionales <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <textarea name="observaciones" rows="4" placeholder="Agrega cualquier otro comentario relevante..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Enviar Feedback</button>
     </form>
-</main>
+</div>
 
 <script>
-    // URL de ejecución
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
-    
-    
     const form = document.getElementById('sprintForm');
     const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+
+    // AQUÍ DEBES PONER LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+    const scriptURL = 'https://script.google.com/macros/s/TU_URL_AQUI/exec';
 
     form.addEventListener('submit', e => {
-        e.preventDefault(); 
+        e.preventDefault();
         
-        const checkboxes = document.querySelectorAll('input[name="factores"]:checked');
-        if (checkboxes.length === 0) {
-            alert('Por favor, selecciona al menos un factor.');
-            return;
-        }
-
-        // Estado de carga
+        // UX: Cambiar estado del botón a cargando
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-            <svg class="spinner" viewBox="0 0 50 50" style="width: 20px; height: 20px; animation: rotate 2s linear infinite;">
-                <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5" stroke-dasharray="1, 200" stroke-dashoffset="0" style="stroke-linecap: round; animation: dash 1.5s ease-in-out infinite;"></circle>
-            </svg>
-            <span>Procesando...</span>
-        `;
+        submitBtn.innerText = 'Enviando...';
+        successMessage.style.display = 'none';
 
-        const formData = new FormData(form);
-        const seleccionados = Array.from(checkboxes).map(cb => cb.value).join(', ');
-        formData.set('factores', seleccionados); 
-        const URLDatos = new URLSearchParams(formData);
-
-        fetch(scriptURL, { 
-            method: 'POST', 
-            mode: 'no-cors', 
-            body: URLDatos,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        })
-        .then(() => {
-            alert('¡Feedback registrado correctamente! Gracias por tu aporte.');
-            form.reset();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Ocurrió un error de conexión.');
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span>Enviar Feedback</span>';
+        // Recolectar datos
+        let formData = new FormData(form);
+        
+        // Lógica especial para unir todos los checkboxes marcados separados por coma
+        let factoresArray = [];
+        document.querySelectorAll('input[name="factores"]:checked').forEach(checkbox => {
+            factoresArray.push(checkbox.value);
         });
-    });
+        formData.set('factores', factoresArray.join(', '));
 
-    // Animación para el spinner
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes rotate { 100% { transform: rotate(360deg); } }
-        @keyframes dash { 
-            0% { stroke-dasharray: 1, 200; stroke-dashoffset: 0; } 
-            50% { stroke-dasharray: 90, 200; stroke-dashoffset: -35px; } 
-            100% { stroke-dasharray: 90, 200; stroke-dashoffset: -124px; } 
-        }
-    `;
-    document.head.appendChild(style);
+        // Enviar datos
+        fetch(scriptURL, { method: 'POST', body: formData })
+            .then(response => {
+                // UX: Éxito
+                successMessage.style.display = 'block';
+                form.reset();
+                window.scrollTo(0, 0); // Hacer scroll hacia arriba para ver el mensaje
+            })
+            .catch(error => {
+                alert('Hubo un error al enviar el formulario. Por favor intenta de nuevo.');
+                console.error('Error!', error.message);
+            })
+            .finally(() => {
+                // UX: Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Enviar Feedback';
+            });
+    });
 </script>
 
 </body>
