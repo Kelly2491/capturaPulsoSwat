@@ -8,12 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
-            --primary-hover: #1d4ed8;
+            --primary-color: #2D6DF6; /* Azul corporativo principal */
+            --primary-hover: #1b51c8;
             --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
+            --card-bg: #FFFFFF;
             --text-main: #1f2937;
-            --text-muted: #6b7280;
+            --text-muted: #888B8D;
             --border-color: #d1d5db;
         }
 
@@ -32,10 +32,9 @@
             max-width: 700px;
         }
 
-        /* Encabezado azul */
         .header {
             background-color: var(--primary-color);
-            color: white;
+            color: var(--card-bg);
             padding: 30px;
             border-radius: 12px 12px 0 0;
             margin-bottom: 20px;
@@ -53,7 +52,6 @@
             opacity: 0.9;
         }
 
-        /* Tarjetas de preguntas */
         .card {
             background: var(--card-bg);
             padding: 25px;
@@ -73,8 +71,7 @@
             color: #ef4444;
         }
 
-        /* Inputs de texto */
-        input[type="text"], textarea {
+        input[type="text"], textarea, select {
             width: 100%;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -83,15 +80,24 @@
             font-family: 'Inter', sans-serif;
             box-sizing: border-box;
             transition: border-color 0.3s ease;
+            background-color: var(--card-bg);
         }
 
-        input[type="text"]:focus, textarea:focus {
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(45, 109, 246, 0.1);
         }
 
-        /* Opciones de Velocidad (Píldoras) */
         .radio-group {
             display: flex;
             flex-wrap: wrap;
@@ -110,19 +116,20 @@
             transition: all 0.2s ease;
             font-size: 14px;
             font-weight: 500;
+            color: var(--text-main);
         }
 
         .radio-group input[type="radio"] {
-            display: none; /* Ocultamos el circulito nativo */
+            display: none;
         }
 
-        .radio-group input[type="radio"]:checked + label {
-            background-color: #eff6ff;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-        }
+        /* Colores dinámicos al seleccionar la velocidad */
+        #muy_baja:checked + label { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+        #baja:checked + label { background-color: #ffedd5; border-color: #f97316; color: #c2410c; }
+        #adecuada:checked + label { background-color: #fef08a; border-color: #eab308; color: #854d0e; } /* Tono amarillo */
+        #alta:checked + label { background-color: #d1fae5; border-color: #10b981; color: #047857; }
+        #muy_alta:checked + label { background-color: #dcfce7; border-color: #22c55e; color: #15803d; }
 
-        /* Grid de Checkboxes */
         .checkbox-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -149,10 +156,9 @@
             cursor: pointer;
         }
 
-        /* Botón de Enviar */
         .submit-btn {
             background-color: var(--primary-color);
-            color: white;
+            color: var(--card-bg);
             border: none;
             padding: 14px 24px;
             font-size: 16px;
@@ -168,11 +174,10 @@
         }
 
         .submit-btn:disabled {
-            background-color: #9ca3af;
+            background-color: var(--text-muted);
             cursor: not-allowed;
         }
 
-        /* Mensaje de éxito oculto por defecto */
         #successMessage {
             display: none;
             background-color: #d1fae5;
@@ -197,13 +202,28 @@
     <div id="successMessage">¡Gracias! Tu feedback ha sido registrado exitosamente.</div>
 
     <form id="sprintForm">
+        
+        <!-- Tarjeta 0: Selección de Sprint -->
+        <div class="card">
+            <div class="question-title">Sprint a evaluar <span class="required">*</span></div>
+            <select name="sprint" required>
+                <option value="" disabled selected>Selecciona el Sprint...</option>
+                <option value="Sprint 77">Sprint 77</option>
+                <option value="Sprint 78">Sprint 78</option>
+                <option value="Sprint 79">Sprint 79</option>
+                <option value="Sprint 80">Sprint 80</option>
+                <option value="Sprint 81">Sprint 81</option>
+                <option value="Sprint 82">Sprint 82</option>
+            </select>
+        </div>
+
         <!-- Tarjeta 1: Nombre -->
         <div class="card">
             <div class="question-title">Nombre del integrante <span class="required">*</span></div>
             <input type="text" name="nombre" placeholder="Ej. Juan Pérez" required>
         </div>
 
-        <!-- Tarjeta 2: Velocidad -->
+        <!-- Tarjeta 2: Velocidad con colores -->
         <div class="card">
             <div class="question-title">1. ¿Cómo sintió el equipo la velocidad de este Sprint? <span class="required">*</span></div>
             <div class="radio-group">
@@ -256,42 +276,35 @@
     const submitBtn = document.getElementById('submitBtn');
     const successMessage = document.getElementById('successMessage');
 
-    // AQUÍ DEBES PONER LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
-    
+    // AQUÍ DEBES PONER LA NUEVA URL DE TU WEB APP DE GOOGLE APPS SCRIPT LUEGO DE ACTUALIZARLA
+    const scriptURL = 'https://script.google.com/macros/s/TU_URL_AQUI/exec';
 
     form.addEventListener('submit', e => {
         e.preventDefault();
         
-        // UX: Cambiar estado del botón a cargando
         submitBtn.disabled = true;
         submitBtn.innerText = 'Enviando...';
         successMessage.style.display = 'none';
 
-        // Recolectar datos
         let formData = new FormData(form);
         
-        // Lógica especial para unir todos los checkboxes marcados separados por coma
         let factoresArray = [];
         document.querySelectorAll('input[name="factores"]:checked').forEach(checkbox => {
             factoresArray.push(checkbox.value);
         });
         formData.set('factores', factoresArray.join(', '));
 
-        // Enviar datos
         fetch(scriptURL, { method: 'POST', body: formData })
             .then(response => {
-                // UX: Éxito
                 successMessage.style.display = 'block';
                 form.reset();
-                window.scrollTo(0, 0); // Hacer scroll hacia arriba para ver el mensaje
+                window.scrollTo(0, 0); 
             })
             .catch(error => {
                 alert('Hubo un error al enviar el formulario. Por favor intenta de nuevo.');
                 console.error('Error!', error.message);
             })
             .finally(() => {
-                // UX: Restaurar botón
                 submitBtn.disabled = false;
                 submitBtn.innerText = 'Enviar Feedback';
             });
