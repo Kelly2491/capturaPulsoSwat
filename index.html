@@ -3,244 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar Pulso de Sprint</title>
-    <!-- Tailwind CSS para los estilos rápidos y modernos -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons para los iconos idénticos a tu diseño -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Fuente Inter de Google -->
+    <title>Feedback del Sprint</title>
+    <!-- Fuente moderna de Google -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brandDark: '#121626',
-                        brandCard: '#1A2133',
-                        brandGreen: '#10B981',
-                        brandGreenHover: '#059669',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body {
-            background-color: #0B0F19; /* Fondo oscuro de la app */
-            color: #E2E8F0;
+        :root {
+            --primary-color: #2D6DF6; /* Azul corporativo principal */
+            --primary-hover: #1b51c8;
+            --bg-color: #f3f4f6;
+            --card-bg: #FFFFFF;
+            --text-main: #1f2937;
+            --text-muted: #888B8D;
+            --border-color: #d1d5db;
         }
 
-        /* Estilo para la zona punteada cuando se arrastra un archivo encima */
-        .drag-over {
-            border-color: #10B981 !important;
-            background-color: rgba(16, 185, 129, 0.05) !important;
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px 12px 0 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .question-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+            background-color: var(--card-bg);
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        input[type="text"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(45, 109, 246, 0.1);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .radio-group label {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+
+        /* Colores dinámicos al seleccionar la velocidad */
+        #muy_baja:checked + label { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
+        #baja:checked + label { background-color: #ffedd5; border-color: #f97316; color: #c2410c; }
+        #adecuada:checked + label { background-color: #fef08a; border-color: #eab308; color: #854d0e; } /* Tono amarillo */
+        #alta:checked + label { background-color: #d1fae5; border-color: #10b981; color: #047857; }
+        #muy_alta:checked + label { background-color: #dcfce7; border-color: #22c55e; color: #15803d; }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: var(--card-bg);
+            border: none;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .submit-btn:disabled {
+            background-color: var(--text-muted);
+            cursor: not-allowed;
+        }
+
+        #successMessage {
+            display: none;
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #a7f3d0;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body>
 
-    <!-- Modal Container -->
-    <div class="bg-brandCard w-full max-w-xl rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
-        
-        <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-            <div class="flex items-center gap-2">
-                <div class="w-2.5 h-2.5 rounded-full bg-brandGreen"></div>
-                <h2 class="text-white font-semibold tracking-wide text-sm">CARGAR PULSO DE NUEVO SPRINT</h2>
-            </div>
-            <button class="text-gray-400 hover:text-white transition-colors">
-                <i class="ph ph-x text-lg"></i>
-            </button>
-        </div>
-
-        <div class="p-6">
-            <!-- Alert Info -->
-            <div class="bg-[#064e3b]/30 border border-[#065f46] rounded-lg p-4 flex gap-3 mb-6">
-                <i class="ph ph-info text-brandGreen text-xl shrink-0"></i>
-                <p class="text-sm text-[#34d399] leading-relaxed">
-                    El sistema procesará los datos pero <strong>**eliminará de inmediato**</strong> los nombres y correos para mantener anonimato absoluto.
-                </p>
-            </div>
-
-            <form id="uploadForm">
-                <!-- Inputs -->
-                <div class="space-y-5 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Identificador del Sprint:</label>
-                        <input type="text" value="Sprint 78" 
-                            class="w-full bg-[#0F131F] border border-gray-700 rounded-md px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandGreen transition-colors">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-300 mb-1">Periodo:</label>
-                        <input type="text" value="Junio 2026" 
-                            class="w-full bg-[#0F131F] border border-gray-700 rounded-md px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brandGreen transition-colors">
-                    </div>
-                </div>
-
-                <!-- Custom File Upload Zone -->
-                <div class="mb-8">
-                    <label class="block text-sm font-medium text-gray-300 mb-2">Archivo de Respuestas (Formato CSV de Excel):</label>
-                    
-                    <!-- Input nativo oculto -->
-                    <input type="file" id="fileInput" class="hidden" accept=".csv, .txt, .xlsx, .xls">
-                    
-                    <!-- Zona interactiva visual -->
-                    <div id="dropZone" 
-                         class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center cursor-pointer transition-all hover:bg-[#151b29] hover:border-brandGreen group relative">
-                        
-                        <!-- Contenido cuando NO hay archivo -->
-                        <div id="uploadPrompt" class="flex flex-col items-center justify-center">
-                            <i class="ph ph-upload-simple text-3xl text-brandGreen mb-3 group-hover:-translate-y-1 transition-transform"></i>
-                            <p class="text-sm text-gray-300 mb-1">
-                                <span class="text-brandGreen font-medium">Haz clic para cargar</span> o arrastra tu archivo aquí
-                            </p>
-                            <p class="text-xs text-gray-500">Admite archivos Excel, .csv o .txt</p>
-                        </div>
-
-                        <!-- Contenido cuando SÍ hay archivo cargado (Oculto por defecto) -->
-                        <div id="fileInfo" class="hidden flex flex-col items-center justify-center">
-                            <i class="ph-fill ph-file-csv text-4xl text-brandGreen mb-2"></i>
-                            <p id="fileName" class="text-sm font-medium text-white mb-1">nombre_del_archivo.csv</p>
-                            <p id="fileSize" class="text-xs text-gray-500 mb-3">15 KB</p>
-                            <button type="button" id="removeFileBtn" class="text-xs text-red-400 hover:text-red-300 font-medium px-3 py-1 bg-red-400/10 rounded-md transition-colors">
-                                Eliminar archivo
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" class="text-sm font-medium text-gray-400 hover:text-white transition-colors px-4 py-2">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="bg-brandGreen hover:bg-brandGreenHover text-white text-sm font-medium px-6 py-2.5 rounded-md flex items-center gap-2 transition-colors shadow-lg shadow-brandGreen/20">
-                        <i class="ph ph-check text-lg"></i>
-                        Procesar Anónimamente
-                    </button>
-                </div>
-            </form>
-        </div>
+<div class="container">
+    <div class="header">
+        <h1>Feedback del Sprint</h1>
+        <p>Captura rápida de la percepción del equipo sobre la velocidad de la iteración e identificación de fricciones. Tu retroalimentación impulsa nuestra mejora continua.</p>
     </div>
 
-    <!-- Script para la lógica del Drag & Drop -->
-    <script>
-        const dropZone = document.getElementById('dropZone');
-        const fileInput = document.getElementById('fileInput');
-        const uploadPrompt = document.getElementById('uploadPrompt');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileNameDisplay = document.getElementById('fileName');
-        const fileSizeDisplay = document.getElementById('fileSize');
-        const removeFileBtn = document.getElementById('removeFileBtn');
+    <div id="successMessage">¡Gracias! Tu feedback ha sido registrado exitosamente.</div>
 
-        // 1. Abrir explorador al hacer clic en la zona
-        dropZone.addEventListener('click', (e) => {
-            // Evitar que el clic en el botón "Eliminar" abra el explorador
-            if (e.target !== removeFileBtn) {
-                fileInput.click();
-            }
-        });
-
-        // 2. Prevenir comportamientos por defecto del navegador para el Drag & Drop
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        // 3. Efecto visual al arrastrar por encima
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.add('drag-over');
-            }, false);
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, () => {
-                dropZone.classList.remove('drag-over');
-            }, false);
-        });
-
-        // 4. Manejar el archivo cuando se suelta (Drop)
-        dropZone.addEventListener('drop', (e) => {
-            let dt = e.dataTransfer;
-            let files = dt.files;
-            
-            if (files.length > 0) {
-                fileInput.files = files; // Asignar el archivo al input oculto
-                updateUIWithFile(files[0]);
-            }
-        });
-
-        // 5. Manejar el archivo cuando se selecciona por el explorador (Click)
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                updateUIWithFile(this.files[0]);
-            }
-        });
-
-        // 6. Remover archivo seleccionado
-        removeFileBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Evita que se abra el explorador
-            fileInput.value = ''; // Limpiar el input
-            
-            // Restaurar la UI
-            uploadPrompt.classList.remove('hidden');
-            fileInfo.classList.add('hidden');
-            dropZone.classList.remove('border-brandGreen', 'bg-[#151b29]');
-            dropZone.classList.add('border-gray-600');
-        });
-
-        // Función para actualizar la interfaz con los datos del archivo
-        function updateUIWithFile(file) {
-            // Validar extensión (opcional)
-            const validExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            
-            if (!validExtensions.includes(fileExtension)) {
-                alert('Por favor, selecciona un archivo válido (.csv, .txt o Excel)');
-                fileInput.value = ''; // Limpiar
-                return;
-            }
-
-            // Mostrar tamaño formateado
-            let sizeStr = '';
-            if(file.size < 1024) sizeStr = file.size + ' B';
-            else if(file.size < 1048576) sizeStr = (file.size / 1024).toFixed(1) + ' KB';
-            else sizeStr = (file.size / 1048576).toFixed(1) + ' MB';
-
-            fileNameDisplay.textContent = file.name;
-            fileSizeDisplay.textContent = sizeStr;
-
-            // Cambiar la vista
-            uploadPrompt.classList.add('hidden');
-            fileInfo.classList.remove('hidden');
-            
-            // Estilizar la caja para indicar éxito
-            dropZone.classList.remove('border-gray-600');
-            dropZone.classList.add('border-brandGreen', 'bg-[#151b29]');
-        }
+    <form id="sprintForm">
         
-        // Manejar envío del formulario
-        document.getElementById('uploadForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const file = fileInput.files[0];
-            if (!file) {
-                alert("Por favor, selecciona un archivo antes de procesar.");
-                return;
-            }
-            alert("Archivo listo para ser procesado: " + file.name + "\nAquí conectarías con tu backend.");
-            // Aquí puedes usar FormData y fetch() para enviar a tu servidor o App Script.
+        <!-- Tarjeta 0: Selección de Sprint -->
+        <div class="card">
+            <div class="question-title">Sprint a evaluar <span class="required">*</span></div>
+            <select name="sprint" required>
+                <option value="" disabled selected>Selecciona el Sprint...</option>
+                <option value="Sprint 77">Sprint 77</option>
+                <option value="Sprint 78">Sprint 78</option>
+                <option value="Sprint 79">Sprint 79</option>
+                <option value="Sprint 80">Sprint 80</option>
+                <option value="Sprint 81">Sprint 81</option>
+                <option value="Sprint 82">Sprint 82</option>
+            </select>
+        </div>
+
+        <!-- Tarjeta 1: Nombre -->
+        <div class="card">
+            <div class="question-title">Nombre del integrante <span class="required">*</span></div>
+            <input type="text" name="nombre" placeholder="Ej. Juan Pérez" required>
+        </div>
+
+        <!-- Tarjeta 2: Velocidad con colores -->
+        <div class="card">
+            <div class="question-title">1. ¿Cómo sintió el equipo la velocidad de este Sprint? <span class="required">*</span></div>
+            <div class="radio-group">
+                <input type="radio" id="muy_baja" name="velocidad" value="Muy baja" required>
+                <label for="muy_baja">Muy baja</label>
+
+                <input type="radio" id="baja" name="velocidad" value="Baja">
+                <label for="baja">Baja</label>
+
+                <input type="radio" id="adecuada" name="velocidad" value="Adecuada">
+                <label for="adecuada">Adecuada</label>
+
+                <input type="radio" id="alta" name="velocidad" value="Alta">
+                <label for="alta">Alta</label>
+
+                <input type="radio" id="muy_alta" name="velocidad" value="Muy alta">
+                <label for="muy_alta">Muy alta</label>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Factores -->
+        <div class="card">
+            <div class="question-title">2. ¿Qué factores afectaron la velocidad en este sprint? <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <div class="checkbox-grid">
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Historias poco claras"> Historias poco claras</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Cambios de alcance"> Cambios de alcance</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Falta de backlog"> Falta de backlog</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Bloqueos técnicos"> Bloqueos técnicos</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Dependencias externas"> Dependencias externas</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Deuda técnica"> Deuda técnica</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Fallas en pruebas"> Fallas en pruebas</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Fallas en producción"> Fallas en producción</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Carga excesiva"> Carga excesiva</label>
+                <label class="checkbox-label"><input type="checkbox" name="factores" value="Ausencias"> Ausencias</label>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Observaciones -->
+        <div class="card">
+            <div class="question-title">3. Observaciones adicionales <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <textarea name="observaciones" rows="4" placeholder="Agrega cualquier otro comentario relevante..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Enviar Feedback</button>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById('sprintForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const successMessage = document.getElementById('successMessage');
+
+    // AQUÍ DEBES PONER LA NUEVA URL DE TU WEB APP DE GOOGLE APPS SCRIPT LUEGO DE ACTUALIZARLA
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Enviando...';
+        successMessage.style.display = 'none';
+
+        let formData = new FormData(form);
+        
+        let factoresArray = [];
+        document.querySelectorAll('input[name="factores"]:checked').forEach(checkbox => {
+            factoresArray.push(checkbox.value);
         });
-    </script>
+        formData.set('factores', factoresArray.join(', '));
+
+fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
+            .then(() => {
+                // UX: Éxito
+                successMessage.style.display = 'block';
+                form.reset();
+                window.scrollTo(0, 0); 
+            })
+            .catch(error => {
+                alert('Hubo un error al enviar el formulario. Por favor intenta de nuevo.');
+                console.error('Error!', error.message);
+            })
+            .finally(() => {
+                // UX: Restaurar botón
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Enviar Feedback';
+            });
+    });
+</script>
+
 </body>
 </html>
