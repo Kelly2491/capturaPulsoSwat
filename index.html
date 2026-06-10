@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback del Sprint</title>
+
     <!-- Fuente moderna de Google -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --primary-color: #2D6DF6; /* Azul corporativo principal */
+            --primary-color: #2D6DF6;
             --primary-hover: #1b51c8;
             --bg-color: #f3f4f6;
             --card-bg: #FFFFFF;
@@ -123,12 +125,35 @@
             display: none;
         }
 
-        /* Colores dinámicos al seleccionar la velocidad */
-        #muy_baja:checked + label { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; }
-        #baja:checked + label { background-color: #ffedd5; border-color: #f97316; color: #c2410c; }
-        #adecuada:checked + label { background-color: #fef08a; border-color: #eab308; color: #854d0e; } /* Tono amarillo */
-        #alta:checked + label { background-color: #d1fae5; border-color: #10b981; color: #047857; }
-        #muy_alta:checked + label { background-color: #dcfce7; border-color: #22c55e; color: #15803d; }
+        #muy_baja:checked + label {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #b91c1c;
+        }
+
+        #baja:checked + label {
+            background-color: #ffedd5;
+            border-color: #f97316;
+            color: #c2410c;
+        }
+
+        #adecuada:checked + label {
+            background-color: #fef08a;
+            border-color: #eab308;
+            color: #854d0e;
+        }
+
+        #alta:checked + label {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #047857;
+        }
+
+        #muy_alta:checked + label {
+            background-color: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
 
         .checkbox-grid {
             display: grid;
@@ -139,6 +164,18 @@
         @media (max-width: 500px) {
             .checkbox-grid {
                 grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 22px;
+            }
+
+            .card {
+                padding: 20px;
             }
         }
 
@@ -189,20 +226,43 @@
             font-weight: 500;
             border: 1px solid #a7f3d0;
         }
+
+        #errorMessage {
+            display: none;
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid #fecaca;
+        }
+
+        .helper-text {
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
+
 <body>
 
 <div class="container">
     <div class="header">
         <h1>Feedback del Sprint</h1>
-        <p>Captura rápida de la percepción del equipo sobre la velocidad de la iteración e identificación de fricciones. Tu retroalimentación impulsa nuestra mejora continua.</p>
+        <p>
+            Captura rápida de la percepción del equipo sobre la velocidad de la iteración e identificación de fricciones.
+            Tu retroalimentación impulsa nuestra mejora continua.
+        </p>
     </div>
 
     <div id="successMessage">¡Gracias! Tu feedback ha sido registrado exitosamente.</div>
+    <div id="errorMessage">Hubo un error al enviar el formulario. Por favor intenta nuevamente.</div>
 
     <form id="sprintForm">
-        
+
         <!-- Tarjeta 0: Selección de Sprint -->
         <div class="card">
             <div class="question-title">Sprint a evaluar <span class="required">*</span></div>
@@ -217,13 +277,22 @@
             </select>
         </div>
 
-        <!-- Tarjeta 1: Nombre -->
+        <!-- Tarjeta 1: Selección de Equipo -->
+        <div class="card">
+            <div class="question-title">Equipo <span class="required">*</span></div>
+            <select name="equipo" id="equipoSelect" required>
+                <option value="" disabled selected>Cargando equipos...</option>
+            </select>
+            <div class="helper-text">Los equipos se cargan automáticamente desde la pestaña “Equipos” de Google Sheets.</div>
+        </div>
+
+        <!-- Tarjeta 2: Nombre -->
         <div class="card">
             <div class="question-title">Nombre del integrante <span class="required">*</span></div>
             <input type="text" name="nombre" placeholder="Ej. Juan Pérez" required>
         </div>
 
-        <!-- Tarjeta 2: Velocidad con colores -->
+        <!-- Tarjeta 3: Velocidad con colores -->
         <div class="card">
             <div class="question-title">1. ¿Cómo sintió el equipo la velocidad de este Sprint? <span class="required">*</span></div>
             <div class="radio-group">
@@ -244,9 +313,13 @@
             </div>
         </div>
 
-        <!-- Tarjeta 3: Factores -->
+        <!-- Tarjeta 4: Factores -->
         <div class="card">
-            <div class="question-title">2. ¿Qué factores afectaron la velocidad en este sprint? <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <div class="question-title">
+                2. ¿Qué factores afectaron la velocidad en este sprint?
+                <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span>
+            </div>
+
             <div class="checkbox-grid">
                 <label class="checkbox-label"><input type="checkbox" name="factores" value="Historias poco claras"> Historias poco claras</label>
                 <label class="checkbox-label"><input type="checkbox" name="factores" value="Cambios de alcance"> Cambios de alcance</label>
@@ -261,9 +334,12 @@
             </div>
         </div>
 
-        <!-- Tarjeta 4: Observaciones -->
+        <!-- Tarjeta 5: Observaciones -->
         <div class="card">
-            <div class="question-title">3. Observaciones adicionales <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span></div>
+            <div class="question-title">
+                3. Observaciones adicionales
+                <span style="font-weight: normal; font-size: 13px; color: var(--text-muted);">(Opcional)</span>
+            </div>
             <textarea name="observaciones" rows="4" placeholder="Agrega cualquier otro comentario relevante..."></textarea>
         </div>
 
@@ -275,41 +351,89 @@
     const form = document.getElementById('sprintForm');
     const submitBtn = document.getElementById('submitBtn');
     const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const equipoSelect = document.getElementById('equipoSelect');
 
-    // AQUÍ DEBES PONER LA NUEVA URL DE TU WEB APP DE GOOGLE APPS SCRIPT LUEGO DE ACTUALIZARLA
+    /*
+      IMPORTANTE:
+      Esta debe ser la URL de tu Web App de Google Apps Script.
+      Si actualizas el Apps Script y haces una nueva implementación,
+      valida si la URL cambia y reemplázala aquí.
+    */
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
+
+    // Carga automática de equipos desde la pestaña "Equipos" de Google Sheets
+    async function cargarEquipos() {
+        try {
+            equipoSelect.disabled = true;
+            equipoSelect.innerHTML = '<option value="" disabled selected>Cargando equipos...</option>';
+
+            const response = await fetch(scriptURL);
+            const equipos = await response.json();
+
+            equipoSelect.innerHTML = '<option value="" disabled selected>Selecciona el equipo...</option>';
+
+            if (!Array.isArray(equipos) || equipos.length === 0) {
+                equipoSelect.innerHTML = '<option value="" disabled selected>No hay equipos configurados</option>';
+                return;
+            }
+
+            equipos.forEach(equipo => {
+                const option = document.createElement('option');
+                option.value = equipo;
+                option.textContent = equipo;
+                equipoSelect.appendChild(option);
+            });
+
+            equipoSelect.disabled = false;
+
+        } catch (error) {
+            console.error('Error cargando equipos:', error);
+            equipoSelect.innerHTML = '<option value="" disabled selected>Error al cargar equipos</option>';
+            equipoSelect.disabled = true;
+        }
+    }
+
+    cargarEquipos();
 
     form.addEventListener('submit', e => {
         e.preventDefault();
-        
+
         submitBtn.disabled = true;
         submitBtn.innerText = 'Enviando...';
         successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
 
         let formData = new FormData(form);
-        
+
         let factoresArray = [];
         document.querySelectorAll('input[name="factores"]:checked').forEach(checkbox => {
             factoresArray.push(checkbox.value);
         });
-        formData.set('factores', factoresArray.join(', '));
 
-fetch(scriptURL, { method: 'POST', body: formData, mode: 'no-cors' })
-            .then(() => {
-                // UX: Éxito
-                successMessage.style.display = 'block';
-                form.reset();
-                window.scrollTo(0, 0); 
-            })
-            .catch(error => {
-                alert('Hubo un error al enviar el formulario. Por favor intenta de nuevo.');
-                console.error('Error!', error.message);
-            })
-            .finally(() => {
-                // UX: Restaurar botón
-                submitBtn.disabled = false;
-                submitBtn.innerText = 'Enviar Feedback';
-            });
+        formData.set('factores', factoresArray.join(', '));
+        formData.set('origen', 'Formulario Pulso Equipos');
+        formData.set('fechaRegistro', new Date().toISOString());
+
+        fetch(scriptURL, {
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+        })
+        .then(() => {
+            successMessage.style.display = 'block';
+            form.reset();
+            cargarEquipos();
+            window.scrollTo(0, 0);
+        })
+        .catch(error => {
+            errorMessage.style.display = 'block';
+            console.error('Error enviando formulario:', error);
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Enviar Feedback';
+        });
     });
 </script>
 
