@@ -289,7 +289,10 @@
         <!-- Tarjeta 2: Nombre -->
         <div class="card">
             <div class="question-title">Nombre del integrante <span class="required">*</span></div>
-            <input type="text" name="nombre" placeholder="Ej. Juan Pérez" required>
+            <select name="nombre" id="nombreSelect" required disabled>
+                <option value="" disabled selected>Primero selecciona un equipo...</option>
+            </select>
+            <div class="helper-text">La lista de integrantes cambia automáticamente según el equipo seleccionado.</div>
         </div>
 
         <!-- Tarjeta 3: Velocidad con colores -->
@@ -353,6 +356,9 @@
     const successMessage = document.getElementById('successMessage');
     const errorMessage = document.getElementById('errorMessage');
     const equipoSelect = document.getElementById('equipoSelect');
+    const nombreSelect = document.getElementById('nombreSelect');
+
+    let integrantesPorEquipo = {};
 
     /*
       IMPORTANTE:
@@ -362,14 +368,20 @@
     */
     const scriptURL = 'https://script.google.com/macros/s/AKfycbwbzBRXKZhxZFmGzChPYxEh0ELIbmuxvbSWhwZMz53v5I0lZNP6hYIgnkg9ZUD2kB7Mpw/exec';
 
-    // Carga automática de equipos desde la pestaña "Equipos" de Google Sheets
+    // Carga automática de equipos e integrantes desde la pestaña "Equipos" de Google Sheets
     async function cargarEquipos() {
         try {
             equipoSelect.disabled = true;
+            nombreSelect.disabled = true;
+
             equipoSelect.innerHTML = '<option value="" disabled selected>Cargando equipos...</option>';
+            nombreSelect.innerHTML = '<option value="" disabled selected>Primero selecciona un equipo...</option>';
 
             const response = await fetch(scriptURL);
-            const equipos = await response.json();
+            const data = await response.json();
+
+            const equipos = data.equipos || [];
+            integrantesPorEquipo = data.integrantesPorEquipo || {};
 
             equipoSelect.innerHTML = '<option value="" disabled selected>Selecciona el equipo...</option>';
 
@@ -390,9 +402,34 @@
         } catch (error) {
             console.error('Error cargando equipos:', error);
             equipoSelect.innerHTML = '<option value="" disabled selected>Error al cargar equipos</option>';
+            nombreSelect.innerHTML = '<option value="" disabled selected>Error al cargar integrantes</option>';
             equipoSelect.disabled = true;
+            nombreSelect.disabled = true;
         }
     }
+
+    // Cuando selecciona un equipo, carga solo los integrantes de ese equipo
+    equipoSelect.addEventListener('change', function() {
+        const equipoSeleccionado = equipoSelect.value;
+        const integrantes = integrantesPorEquipo[equipoSeleccionado] || [];
+
+        nombreSelect.innerHTML = '<option value="" disabled selected>Selecciona el integrante...</option>';
+
+        if (integrantes.length === 0) {
+            nombreSelect.innerHTML = '<option value="" disabled selected>No hay integrantes para este equipo</option>';
+            nombreSelect.disabled = true;
+            return;
+        }
+
+        integrantes.forEach(nombre => {
+            const option = document.createElement('option');
+            option.value = nombre;
+            option.textContent = nombre;
+            nombreSelect.appendChild(option);
+        });
+
+        nombreSelect.disabled = false;
+    });
 
     cargarEquipos();
 
@@ -423,6 +460,10 @@
         .then(() => {
             successMessage.style.display = 'block';
             form.reset();
+
+            nombreSelect.disabled = true;
+            nombreSelect.innerHTML = '<option value="" disabled selected>Primero selecciona un equipo...</option>';
+
             cargarEquipos();
             window.scrollTo(0, 0);
         })
