@@ -916,7 +916,7 @@
                 state.sprints = [];
             } else {
                 state.sprints = (data || []).map(s => ({
-                    id: s.id, name: s.name, period: s.period,
+                    id: s.id, name: s.name, period: s.period, created_at: s.created_at,
                     responses: (s.responses || []).map((r, idx) => ({
                         id: r.id, anonymousName: r.anonymous_name || `Colaborador Anónimo #${idx + 1}`,
                         speed: r.speed, factors: r.factors || ['Ninguno'], observation: r.observation || ''
@@ -1205,6 +1205,27 @@
             }
         }
 
+        function getQuarterInfo(sprint) {
+            const text = (sprint.period || '').toLowerCase();
+            const months = {
+                'enero': 1, 'febrero': 2, 'marzo': 3, 'abril': 4, 'mayo': 5, 'junio': 6,
+                'julio': 7, 'agosto': 8, 'septiembre': 9, 'setiembre': 9, 'octubre': 10, 'noviembre': 11, 'diciembre': 12
+            };
+            let year = null, month = null;
+            const yearMatch = text.match(/(20\d{2})/);
+            if (yearMatch) year = parseInt(yearMatch[1]);
+            for (const name in months) {
+                if (text.includes(name)) { month = months[name]; break; }
+            }
+            if (!year || !month) {
+                const d = new Date(sprint.created_at || Date.now());
+                if (!year) year = d.getFullYear();
+                if (!month) month = d.getMonth() + 1;
+            }
+            const q = Math.ceil(month / 3);
+            return { label: `Q${q} ${year}`, sortKey: year * 10 + q };
+        }
+
         function renderHeaderFilters() {
             const container = document.getElementById('sprintFiltersContainer');
 
@@ -1244,26 +1265,37 @@
                             <div class="h-px bg-slate-800/80 my-1 mx-2"></div>
             `;
 
-            // Opciones Individuales
+            // Agrupar sprints por trimestre (Q1-Q4) y renderizar con subtítulo
+            const groups = {};
             state.sprints.forEach(sprint => {
-                const isSelected = state.selectedSprints.includes(sprint.id);
-                html += `
-                    <div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/80 cursor-pointer transition-colors group ${isSelected ? 'bg-slate-800/40' : ''}">
-                        <label class="flex items-center gap-3 w-full cursor-pointer">
-                            <div class="relative flex items-center justify-center shrink-0">
-                                <input type="checkbox" class="peer sr-only" onchange="toggleSprintSelection('${sprint.id}')" ${isSelected ? 'checked' : ''}>
-                                <div class="w-4 h-4 rounded border border-slate-500 bg-slate-950 peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-colors"></div>
-                                <i data-lucide="check" class="w-3 h-3 text-slate-950 absolute opacity-0 peer-checked:opacity-100"></i>
-                            </div>
-                            <span class="text-xs font-medium ${isSelected ? 'text-slate-100 font-bold' : 'text-slate-400'} group-hover:text-slate-200 transition-colors truncate">${sprint.name}</span>
-                        </label>
-                        ${state.isAdmin ? `
-                            <button type="button" onclick="confirmDeleteSprint('${sprint.id}', '${sprint.name}')" class="p-1.5 ml-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors shrink-0" title="Eliminar este Sprint">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                `;
+                const { label, sortKey } = getQuarterInfo(sprint);
+                if (!groups[label]) groups[label] = { sortKey, items: [] };
+                groups[label].items.push(sprint);
+            });
+            const sortedLabels = Object.keys(groups).sort((a, b) => groups[a].sortKey - groups[b].sortKey);
+
+            sortedLabels.forEach(label => {
+                html += `<div class="px-3 pt-2 pb-1 text-[10px] font-black text-teal-500/80 uppercase tracking-widest">${label}</div>`;
+                groups[label].items.forEach(sprint => {
+                    const isSelected = state.selectedSprints.includes(sprint.id);
+                    html += `
+                        <div class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-800/80 cursor-pointer transition-colors group ${isSelected ? 'bg-slate-800/40' : ''}">
+                            <label class="flex items-center gap-3 w-full cursor-pointer">
+                                <div class="relative flex items-center justify-center shrink-0">
+                                    <input type="checkbox" class="peer sr-only" onchange="toggleSprintSelection('${sprint.id}')" ${isSelected ? 'checked' : ''}>
+                                    <div class="w-4 h-4 rounded border border-slate-500 bg-slate-950 peer-checked:bg-teal-500 peer-checked:border-teal-500 transition-colors"></div>
+                                    <i data-lucide="check" class="w-3 h-3 text-slate-950 absolute opacity-0 peer-checked:opacity-100"></i>
+                                </div>
+                                <span class="text-xs font-medium ${isSelected ? 'text-slate-100 font-bold' : 'text-slate-400'} group-hover:text-slate-200 transition-colors truncate">${sprint.name}</span>
+                            </label>
+                            ${state.isAdmin ? `
+                                <button type="button" onclick="confirmDeleteSprint('${sprint.id}', '${sprint.name}')" class="p-1.5 ml-2 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-md transition-colors shrink-0" title="Eliminar este Sprint">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    `;
+                });
             });
 
             html += `
