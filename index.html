@@ -504,6 +504,7 @@
                         <div id="fileInfo" class="hidden flex-col items-center justify-center space-y-2">
                             <i data-lucide="file-spreadsheet" class="w-10 h-10 text-emerald-400 mb-1"></i>
                             <span id="uploadedFileName" class="text-sm font-bold text-slate-200"></span>
+                            <span id="detectedResponsesHint" class="text-xs font-semibold"></span>
                             <button type="button" id="removeFileBtn" onclick="clearUploadFile(event)" class="text-[11px] font-bold text-rose-400 hover:text-rose-300 bg-rose-500/10 px-3 py-1.5 rounded-md hover:bg-rose-500/20 transition-colors mt-2">
                                 Eliminar archivo
                             </button>
@@ -1773,6 +1774,7 @@
             state.rawCSVText = '';
             state.uploadedFileName = '';
             document.getElementById('fileInput').value = '';
+            document.getElementById('detectedResponsesHint').innerText = '';
             
             document.getElementById('uploadPrompt').classList.remove('hidden');
             document.getElementById('uploadPrompt').classList.add('flex');
@@ -1886,6 +1888,20 @@
                         }
                     }
                 } catch (e) { /* si no se puede leer, se deja el valor por defecto para editar a mano */ }
+
+                const hintEl = document.getElementById('detectedResponsesHint');
+                try {
+                    const { responses, skipped, speedHeader } = extractResponsesFromCSV(state.rawCSVText);
+                    if (!speedHeader) {
+                        hintEl.innerText = '⚠️ No se detectó la columna de velocidad';
+                        hintEl.className = 'text-xs font-semibold text-rose-400';
+                    } else {
+                        hintEl.innerText = `✓ ${responses.length} respuesta${responses.length === 1 ? '' : 's'} detectada${responses.length === 1 ? '' : 's'}` + (skipped > 0 ? ` (${skipped} fila${skipped === 1 ? '' : 's'} vacía${skipped === 1 ? '' : 's'} o sin datos ignorada${skipped === 1 ? '' : 's'})` : '');
+                        hintEl.className = 'text-xs font-semibold text-emerald-400';
+                    }
+                } catch (e) {
+                    hintEl.innerText = '';
+                }
             }
         }
 
@@ -1939,6 +1955,46 @@
             return { headers, data };
         }
 
+        function normalizeSpeedValue(raw) {
+            if (raw === null || raw === undefined || raw.toString().trim() === '') return null;
+            const v = raw.toString().trim().toLowerCase();
+            if (v === "muy alta" || v === "muy_alta") return "Muy alta";
+            if (v === "alta") return "Alta";
+            if (v === "muy baja" || v === "muy_baja") return "Muy baja";
+            if (v === "baja" || v.includes("con retrasos")) return "Baja";
+            if (v === "adecuada" || v === "media" || v === "normal") return "Adecuada";
+            return null; // texto no reconocido (fila vacía, metadata, encabezado repetido, etc.) -> se descarta
+        }
+
+        // Usada tanto para la vista previa como para el guardado real, así el
+        // conteo que ves antes de procesar es EXACTAMENTE el que se guarda.
+        function extractResponsesFromCSV(rawCSVText) {
+            const { headers, data } = parseCSV(rawCSVText);
+            const speedHeader = headers.find(h => h.toLowerCase().includes('velocidad') || h.toLowerCase().includes('sintió') || h.toLowerCase().includes('speed') || h.toLowerCase().includes('ritmo'));
+            const factorsHeader = headers.find(h => h.toLowerCase().includes('factor') || h.toLowerCase().includes('afectaron') || h.toLowerCase().includes('frenos'));
+            const obsHeader = headers.find(h => h.toLowerCase().includes('observaci') || h.toLowerCase().includes('comentario') || h.toLowerCase().includes('opinión'));
+
+            if (!speedHeader) return { responses: [], skipped: 0, speedHeader: null, factorsHeader, obsHeader };
+
+            let skipped = 0;
+            const responses = [];
+            data.forEach((row) => {
+                const speedValue = normalizeSpeedValue(row[speedHeader]);
+                if (!speedValue) { skipped++; return; }
+
+                const rawFactors = row[factorsHeader] || "Ninguno";
+                let factorsList = rawFactors ? rawFactors.toString().split(/[;,]/).map(f => f.trim()).filter(f => f !== "") : [];
+                if (factorsList.length === 0) factorsList = ["Ninguno"];
+
+                responses.push({
+                    anonymousName: `Colaborador Anónimo #${responses.length + 1}`,
+                    speed: speedValue, factors: factorsList, observation: row[obsHeader] || ""
+                });
+            });
+
+            return { responses, skipped, speedHeader, factorsHeader, obsHeader };
+        }
+
         async function saveSprint() {
             const name = document.getElementById('uploadSprintName').value;
             const period = document.getElementById('uploadSprintPeriod').value;
@@ -1949,31 +2005,10 @@
             if (!state.rawCSVText.trim()) { errDiv.innerText = "Por favor selecciona un archivo CSV o Excel válido."; errDiv.classList.remove('hidden'); return; }
 
             try {
-                const { headers, data } = parseCSV(state.rawCSVText);
-
-                const speedHeader = headers.find(h => h.toLowerCase().includes('velocidad') || h.toLowerCase().includes('sintió') || h.toLowerCase().includes('speed') || h.toLowerCase().includes('ritmo'));
-                const factorsHeader = headers.find(h => h.toLowerCase().includes('factor') || h.toLowerCase().includes('afectaron') || h.toLowerCase().includes('frenos'));
-                const obsHeader = headers.find(h => h.toLowerCase().includes('observaci') || h.toLowerCase().includes('comentario') || h.toLowerCase().includes('opinión'));
+                const { responses, skipped, speedHeader } = extractResponsesFromCSV(state.rawCSVText);
 
                 if (!speedHeader) { errDiv.innerText = "No se detectó la columna requerida de velocidad."; errDiv.classList.remove('hidden'); return; }
-
-                const responses = data.map((row, index) => {
-                    const rawFactors = row[factorsHeader] || "Ninguno";
-                    let factorsList = rawFactors ? rawFactors.toString().split(/[;,]/).map(f => f.trim()).filter(f => f !== "") : [];
-                    if (factorsList.length === 0) factorsList = ["Ninguno"];
-
-                    let speedValue = (row[speedHeader] || "Adecuada").toString().trim().toLowerCase();
-                    if (speedValue === "muy alta" || speedValue === "muy_alta") speedValue = "Muy alta";
-                    else if (speedValue === "alta") speedValue = "Alta";
-                    else if (speedValue === "muy baja" || speedValue === "muy_baja") speedValue = "Muy baja";
-                    else if (speedValue === "baja" || speedValue.includes("con retrasos")) speedValue = "Baja";
-                    else speedValue = "Adecuada";
-
-                    return {
-                        anonymousName: `Colaborador Anónimo #${index + 1}`,
-                        speed: speedValue, factors: factorsList, observation: row[obsHeader] || ""
-                    };
-                });
+                if (responses.length === 0) { errDiv.innerText = "No se detectó ninguna respuesta válida en el archivo (revisa que la columna de velocidad tenga datos)."; errDiv.classList.remove('hidden'); return; }
 
                 // 1) Crear el sprint en Supabase (queda asociado al equipo que se está viendo)
                 const { data: newSprint, error: sprintErr } = await supabaseClient
@@ -1995,7 +2030,8 @@
                 await loadSprintsFromSupabase();
                 toggleSprintSelection(newSprint.id);
 
-                showNotification(`¡Exitoso! Se ha integrado el ${name} de forma 100% anónima.`);
+                const skippedMsg = skipped > 0 ? ` (se ignoraron ${skipped} filas vacías o sin datos válidos)` : '';
+                showNotification(`¡Exitoso! Se integraron ${responses.length} respuestas de forma 100% anónima${skippedMsg}.`);
             } catch (err) {
                 errDiv.innerText = "No se pudo procesar el archivo correctamente."; errDiv.classList.remove('hidden');
             }
