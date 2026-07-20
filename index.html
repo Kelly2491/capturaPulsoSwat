@@ -1868,7 +1868,7 @@
             const nameInput = document.getElementById('uploadSprintName');
             const periodInput = document.getElementById('uploadSprintPeriod');
 
-            const m = fileName.match(/sprint\s*(\d+)/i);
+            const m = fileName.match(/(?:sprint|iteraci[oó]n|iteration)\s*#?\s*(\d+)/i);
             if (m) nameInput.value = `Sprint ${m[1]}`;
 
             if (state.rawCSVText) {
