@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWAT Velocity Pulse Tracker</title>
+    <title>Pulso de Velocidad</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -34,6 +34,41 @@
     <!-- ======================================================================
          PANTALLA: AUTENTICACIÓN (correo corporativo + enlace mágico)
          ====================================================================== -->
+    <!-- ======================================================================
+         PANTALLA: TOKEN DE PRUEBA (temporal, mientras se conecta Azure)
+         ====================================================================== -->
+    <div id="testTokenGate" class="fixed inset-0 z-[310] hidden items-center justify-center p-4 bg-slate-950">
+        <div class="w-full max-w-sm space-y-6 animate-fade-in">
+            <div class="text-center space-y-2">
+                <div class="h-12 w-12 mx-auto rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xl shadow-inner"><i data-lucide="key" class="w-6 h-6"></i></div>
+                <h1 class="text-lg font-bold text-slate-100">Pulso de Velocidad</h1>
+                <p class="text-xs text-amber-500/80">Modo de prueba temporal — ingresa un token de acceso.</p>
+            </div>
+
+            <div id="tokenStep1" class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4 shadow-2xl">
+                <div>
+                    <label class="text-[11px] font-bold text-slate-400 block mb-1.5 uppercase tracking-wide">Token de acceso</label>
+                    <input type="password" id="testTokenInput" placeholder="Ingresa tu token..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-teal-500 shadow-inner">
+                </div>
+                <div id="testTokenError" class="hidden p-2.5 bg-rose-950/40 border border-rose-500/30 text-rose-300 text-xs rounded-lg font-medium"></div>
+                <button onclick="checkTestToken()" class="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-slate-950 font-bold text-xs rounded-lg transition-colors">Ingresar</button>
+                <p class="text-[10px] text-slate-600 text-center leading-relaxed">Usa el token de administrador para ver/gestionar todos los equipos, o el token de equipo para entrar como un miembro normal.</p>
+            </div>
+
+            <div id="tokenStep2Teams" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-2xl space-y-5 max-h-[55vh] overflow-y-auto">
+                <p class="text-xs text-slate-400">Elige el equipo con el que quieres probar la sesión:</p>                <div>
+                    <h3 class="text-[11px] font-bold text-teal-400 uppercase tracking-widest mb-2">Equipos Producto</h3>
+                    <div id="tokenTeamListProducto" class="grid grid-cols-2 gap-2"></div>
+                </div>
+                <div>
+                    <h3 class="text-[11px] font-bold text-amber-400 uppercase tracking-widest mb-2">Equipos Ingeniería</h3>
+                    <div id="tokenTeamListIngenieria" class="grid grid-cols-2 gap-2"></div>
+                </div>
+                <button onclick="document.getElementById('tokenStep2Teams').classList.add('hidden'); document.getElementById('tokenStep1').classList.remove('hidden');" class="w-full text-center text-[10px] text-slate-600 hover:text-slate-400 pt-1">← Usar otro token</button>
+            </div>
+        </div>
+    </div>
+
     <div id="authGate" class="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-slate-950">
         <div class="w-full max-w-sm space-y-6 animate-fade-in">
             <div class="text-center space-y-2">
@@ -191,6 +226,11 @@
                     <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Cambiar equipo
                 </button>
 
+                <!-- Solo visible en modo de prueba: volver a la pantalla de tokens -->
+                <button id="btnBackToTokenGate" onclick="backToTokenGate()" class="hidden bg-amber-950/40 hover:bg-amber-900/50 text-amber-300 font-extrabold text-xs px-3.5 py-2.5 rounded-lg transition-all shadow-md items-center gap-2 border border-amber-500/30 hover:scale-105 active:scale-95">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Volver al inicio
+                </button>
+
                 <!-- USUARIO / LOGOUT -->
                 <div class="flex items-center gap-2 bg-slate-800/60 border border-slate-700 rounded-lg px-3 py-2">
                     <div class="text-right leading-tight">
@@ -247,10 +287,12 @@
                         <span class="text-[11px] font-semibold text-teal-400 bg-teal-950/40 border border-teal-500/20 px-2 py-1 rounded hidden sm:inline-block">Sprints Consolidado</span>
                     </div>
                     <div id="chartsContainer" class="space-y-6"></div>
-                    <div class="mt-6 pt-4 border-t border-slate-800/60 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center text-xs">
-                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 block"></span>Alta / Ritmo Ágil</div>
-                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 block"></span>Adecuada / Esperado</div>
-                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 block"></span>Baja / Con Retrasos</div>
+                    <div class="mt-6 pt-4 border-t border-slate-800/60 grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
+                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-teal-400 block"></span>Muy alta</div>
+                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 block"></span>Alta</div>
+                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 block"></span>Adecuada</div>
+                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-orange-400 block"></span>Baja</div>
+                        <div class="flex items-center justify-center gap-1.5 text-slate-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 block"></span>Muy baja</div>
                     </div>
                 </div>
 
@@ -258,7 +300,7 @@
                 <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-6 flex flex-col justify-between">
                     <div>
                         <h3 class="text-base font-bold text-slate-100">Factores de Freno Principales</h3>
-                        <p class="text-xs text-slate-400 mb-4">¿Qué es lo que más ralentiza el rendimiento SWAT?</p>
+                        <p id="topFactorsSubtitle" class="text-xs text-slate-400 mb-4">¿Qué es lo que más ralentiza el rendimiento del equipo?</p>
                         <div id="topFactorsContainer" class="space-y-3.5"></div>
                     </div>
                     <div class="mt-5 pt-4 border-t border-slate-800/60">
@@ -274,7 +316,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                     <div>
                         <h3 class="text-base font-bold text-slate-100">Línea de Tiempo & Observaciones Relevantes</h3>
-                        <p class="text-xs text-slate-400">Declaraciones críticas del equipo SWAT que explican su ritmo</p>
+                        <p id="timelineSubtitle" class="text-xs text-slate-400">Declaraciones críticas del equipo que explican su ritmo</p>
                     </div>
                     <button onclick="clearSearchAndGoToResponses()" class="text-xs text-teal-400 hover:text-teal-300 font-medium flex items-center gap-1">
                         Ver todas las opiniones <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -299,9 +341,11 @@
                         <span class="text-xs font-semibold text-slate-400">Velocidad:</span>
                         <select id="speedFilterSelect" onchange="handleSpeedFilter(this.value)" class="bg-transparent border-none text-xs focus:outline-none text-slate-300 font-semibold cursor-pointer">
                             <option value="all" class="bg-slate-950 text-slate-300">Todas</option>
+                            <option value="muy alta" class="bg-slate-950 text-teal-400">Muy alta</option>
                             <option value="alta" class="bg-slate-950 text-emerald-400">Alta</option>
                             <option value="adecuada" class="bg-slate-950 text-yellow-400">Adecuada</option>
-                            <option value="baja" class="bg-slate-950 text-rose-400">Baja</option>
+                            <option value="baja" class="bg-slate-950 text-orange-400">Baja</option>
+                            <option value="muy baja" class="bg-slate-950 text-rose-400">Muy baja</option>
                         </select>
                     </div>
                     <div class="text-xs text-slate-500 font-semibold" id="showingCountText"></div>
@@ -315,7 +359,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
                 <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden lg:col-span-2">
                     <div class="border-b border-slate-800 px-4 py-3 bg-slate-950/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider font-semibold">Listado de Respuestas de SWAT</h3>
+                        <h3 id="responsesListTitle" class="text-xs font-bold text-slate-300 uppercase tracking-wider font-semibold">Listado de Respuestas</h3>
                         <span class="text-[10px] text-slate-500">Selecciona un registro para ver el detalle</span>
                     </div>
                     <div id="responsesListContainer" class="divide-y divide-slate-800 max-h-[600px] overflow-y-auto"></div>
@@ -389,7 +433,7 @@
                     <div class="mt-8 pt-4 border-t border-slate-800/60 p-4 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span class="text-xs text-slate-400">Estado SWAT:</span><strong class="text-xs text-emerald-400">Activo</strong>
+                            <span class="text-xs text-slate-400">Estado del equipo:</span><strong class="text-xs text-emerald-400">Activo</strong>
                         </div>
                         <button onclick="setTab('dashboard')" class="text-xs text-teal-400 hover:text-teal-300 font-semibold">Volver al Dashboard</button>
                     </div>
@@ -484,7 +528,7 @@
     <!-- FOOTER CON BOTON DE ADMIN -->
     <footer class="border-t border-slate-900 bg-slate-950 py-6 px-6 mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <div class="text-center sm:text-left"><span>© 2026 SWAT Velocity Pulse Tracker. Todos los derechos reservados.</span></div>
+            <div class="text-center sm:text-left"><span>© 2026 Pulso de Velocidad — Satrack S.A.S. Todos los derechos reservados.</span></div>
             <div class="flex gap-4">
                 <span id="adminStatusBadge" class="hidden items-center gap-1 text-teal-400 font-bold"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Modo Administrador</span>
                 <span>•</span>
@@ -506,11 +550,13 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxibHVrcml0dnZic3hjZm54c3lqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0NjY5MzAsImV4cCI6MjA5OTA0MjkzMH0.xrAQ7IadsrCqMnoKHA2-d1f6to3PbmjNn5IHI1_UHYA";
         const FEEDBACK_FORM_URL = "https://n8n.satrack.com/webhook/feedback-sprint"; // Formulario de feedback (n8n)
 
-        // ⚠️ MODO DE PRUEBA — pon esto en `true` para saltarte el login mientras pruebas/ajustas,
-        // y vuelve a ponerlo en `false` cuando termines (y reactiva la seguridad en Supabase,
-        // ver el archivo reactivar_seguridad.sql). Con DEV_MODE = true, CUALQUIERA que entre
-        // al link ve y puede editar TODOS los equipos sin iniciar sesión. No lo dejes así en producción.
+        // ⚠️ MODO DE PRUEBA — pon esto en `true` para usar los tokens de abajo en vez del
+        // login real (Microsoft/correo), mientras terminas de conectar Azure. Cámbialos
+        // por tus propios tokens, y vuelve DEV_MODE a `false` cuando ya no los necesites
+        // (y reactiva la seguridad en Supabase, ver reactivar_seguridad.sql).
         const DEV_MODE = true;
+        const TEST_ADMIN_TOKEN = "admin-satrack-2026";
+        const TEST_TEAM_TOKEN = "equipo-satrack-2026";
 
         // Lista de equipos (debe coincidir con la tabla `teams` en Supabase; se usa como respaldo si la consulta falla)
         const TEAMS_FALLBACK = [
@@ -518,8 +564,8 @@
             { name: "Synecta", category: "Producto" }, { name: "Rocket", category: "Producto" },
             { name: "Migration Force", category: "Producto" }, { name: "Swat", category: "Producto" },
             { name: "Sistema de diseño", category: "Producto" },
-            { name: "Maverciks", category: "Ingeniería" }, { name: "Apache", category: "Ingeniería" },
-            { name: "Analitica", category: "Ingeniería" }, { name: "InnovAItors", category: "Ingeniería" },
+            { name: "Mavericks", category: "Ingeniería" }, { name: "Apache", category: "Ingeniería" },
+            { name: "Analítica", category: "Ingeniería" }, { name: "InnovAItors", category: "Ingeniería" },
             { name: "Mejoramiento", category: "Ingeniería" }, { name: "Tráfico", category: "Ingeniería" }
         ];
 
@@ -603,29 +649,80 @@
         }
 
         // ======================================================================
-        // MODO DE PRUEBA: entra directo, sin login, con acceso admin a todos
-        // los equipos. Requiere que RLS esté desactivada en Supabase (ver
-        // desactivar_seguridad.sql), porque si no las consultas fallarán.
+        // MODO DE PRUEBA POR TOKEN: entra sin login real, como admin o como
+        // miembro de un equipo específico, según el token ingresado.
+        // Requiere que RLS esté desactivada en Supabase (ver
+        // desactivar_seguridad_TEMPORAL.sql), porque si no las consultas fallarán.
         // ======================================================================
-        async function devModeInit() {
-            document.getElementById('authGate').classList.add('hidden');
-            document.getElementById('teamGate').classList.add('hidden');
-            document.getElementById('teamGate').classList.remove('flex');
+        async function checkTestToken() {
+            const errEl = document.getElementById('testTokenError');
+            errEl.classList.add('hidden');
+            const token = document.getElementById('testTokenInput').value.trim();
 
-            state.user = { id: 'dev-mode', email: 'modo-prueba@satrack.com' };
-            state.profile = { id: 'dev-mode', email: 'modo-prueba@satrack.com', role: 'admin' };
-            state.isAdmin = true;
+            if (token === TEST_ADMIN_TOKEN) {
+                await testLoginAsAdmin();
+            } else if (token === TEST_TEAM_TOKEN) {
+                await showTestTeamPicker();
+            } else {
+                errEl.innerText = 'Token inválido. Verifica que lo copiaste bien.';
+                errEl.classList.remove('hidden');
+            }
+        }
 
+        async function loadTeamsForTestMode() {
             const { data: teamsData } = await supabaseClient.from('teams').select('*').order('category').order('name');
             state.teams = (teamsData && teamsData.length) ? teamsData : TEAMS_FALLBACK.map((t) => ({ id: t.name, ...t }));
-            state.myTeams = state.teams; // en modo prueba, "tuyos" son todos
+        }
+
+        async function testLoginAsAdmin() {
+            document.getElementById('testTokenGate').classList.add('hidden');
+            document.getElementById('testTokenGate').classList.remove('flex');
+
+            state.user = { id: 'test-admin', email: 'token-admin@satrack.com' };
+            state.profile = { id: 'test-admin', email: 'token-admin@satrack.com', role: 'admin' };
+            state.isAdmin = true;
+
+            await loadTeamsForTestMode();
+            state.myTeams = state.teams; // el token de admin "pertenece" a todos, para poder gestionar cualquiera
 
             state.viewingTeamId = state.teams[0] ? state.teams[0].id : null;
             state.viewingTeamName = state.teams[0] ? state.teams[0].name : 'Equipo';
 
             document.getElementById('appRoot').classList.remove('hidden');
             document.getElementById('appRoot').classList.add('flex');
+            init();
+        }
 
+        async function showTestTeamPicker() {
+            await loadTeamsForTestMode();
+            document.getElementById('tokenStep1').classList.add('hidden');
+            document.getElementById('tokenStep2Teams').classList.remove('hidden');
+
+            const renderList = (containerId, category) => {
+                const el = document.getElementById(containerId);
+                el.innerHTML = state.teams.filter(t => t.category === category).map(t => `
+                    <button onclick="testLoginAsTeamMember('${t.id}', '${t.name.replace(/'/g, "\\'")}')" class="px-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-950 hover:bg-teal-950/40 hover:border-teal-500/50 text-slate-300 hover:text-teal-300 transition-colors text-left">
+                        ${t.name}
+                    </button>`).join('');
+            };
+            renderList('tokenTeamListProducto', 'Producto');
+            renderList('tokenTeamListIngenieria', 'Ingeniería');
+            lucide.createIcons();
+        }
+
+        function testLoginAsTeamMember(teamId, teamName) {
+            document.getElementById('testTokenGate').classList.add('hidden');
+            document.getElementById('testTokenGate').classList.remove('flex');
+
+            state.user = { id: 'test-member', email: 'token-equipo@satrack.com' };
+            state.profile = { id: 'test-member', email: 'token-equipo@satrack.com', role: 'member' };
+            state.isAdmin = false;
+            state.myTeams = [{ id: teamId, name: teamName, category: '' }];
+            state.viewingTeamId = teamId;
+            state.viewingTeamName = teamName;
+
+            document.getElementById('appRoot').classList.remove('hidden');
+            document.getElementById('appRoot').classList.add('flex');
             init();
         }
 
@@ -838,6 +935,11 @@
             const badge = document.getElementById('teamBadge');
             badge.innerText = state.viewingTeamName.toUpperCase();
 
+            document.title = state.viewingTeamName + ' — Pulso de Velocidad';
+            document.getElementById('topFactorsSubtitle').innerText = `¿Qué es lo que más ralentiza el rendimiento de ${state.viewingTeamName}?`;
+            document.getElementById('timelineSubtitle').innerText = `Declaraciones críticas del equipo ${state.viewingTeamName} que explican su ritmo`;
+            document.getElementById('responsesListTitle').innerText = `Listado de Respuestas de ${state.viewingTeamName}`;
+
             document.getElementById('userEmailLabel').innerText = state.profile.email;
             const roleLabel = state.isAdmin ? 'Administrador' : (state.myTeams.length > 1 ? 'Viendo: ' + state.viewingTeamName : state.viewingTeamName);
             document.getElementById('userRoleLabel').innerText = roleLabel;
@@ -858,12 +960,43 @@
             }
         });
 
+        async function backToTokenGate() {
+            document.getElementById('appRoot').classList.add('hidden');
+            document.getElementById('appRoot').classList.remove('flex');
+
+            document.getElementById('testTokenGate').classList.remove('hidden');
+            document.getElementById('testTokenGate').classList.add('flex');
+
+            // Va directo al listado de equipos (sin volver a pedir el token)
+            document.getElementById('tokenStep1').classList.add('hidden');
+            document.getElementById('tokenStep2Teams').classList.remove('hidden');
+            await loadTeamsForTestMode();
+
+            const renderList = (containerId, category) => {
+                const el = document.getElementById(containerId);
+                el.innerHTML = state.teams.filter(t => t.category === category).map(t => `
+                    <button onclick="testLoginAsTeamMember('${t.id}', '${t.name.replace(/'/g, "\\'")}')" class="px-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-700 bg-slate-950 hover:bg-teal-950/40 hover:border-teal-500/50 text-slate-300 hover:text-teal-300 transition-colors text-left">
+                        ${t.name}
+                    </button>`).join('');
+            };
+            renderList('tokenTeamListProducto', 'Producto');
+            renderList('tokenTeamListIngenieria', 'Ingeniería');
+            lucide.createIcons();
+        }
+
         // --- FUNCIONES DE ADMINISTRADOR / PERMISOS ---
         function updateAdminUI() {
             const btnCargar = document.getElementById('btnCargarSprint');
             const btnSwitch = document.getElementById('btnSwitchTeam');
             const adminBadge = document.getElementById('adminStatusBadge');
+            const btnBack = document.getElementById('btnBackToTokenGate');
             const canManage = canManageCurrentTeam();
+
+            if (DEV_MODE) {
+                btnBack.classList.remove('hidden'); btnBack.classList.add('flex');
+            } else {
+                btnBack.classList.add('hidden'); btnBack.classList.remove('flex');
+            }
 
             if (canManage) {
                 btnCargar.classList.remove('hidden'); btnCargar.classList.add('flex');
@@ -930,17 +1063,31 @@
             return "neutral";
         }
 
+        // ======================================================================
+        // ESCALA DE VELOCIDAD (5 niveles, igual que el formulario de feedback)
+        // ======================================================================
+        const SPEED_LEVELS = ['Muy baja', 'Baja', 'Adecuada', 'Alta', 'Muy alta'];
+
+        function speedStyle(speed) {
+            switch (speed) {
+                case 'Muy alta': return { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20', dot: 'bg-teal-400', barFrom: 'from-teal-500', barTo: 'to-teal-400', barText: 'text-teal-950' };
+                case 'Alta': return { text: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', dot: 'bg-emerald-400', barFrom: 'from-emerald-500', barTo: 'to-emerald-400', barText: 'text-emerald-950' };
+                case 'Baja': return { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', dot: 'bg-orange-400', barFrom: 'from-orange-500', barTo: 'to-orange-400', barText: 'text-orange-950' };
+                case 'Muy baja': return { text: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20', dot: 'bg-rose-400', barFrom: 'from-rose-600', barTo: 'to-rose-500', barText: 'text-rose-950' };
+                default: return { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', dot: 'bg-yellow-400', barFrom: 'from-yellow-500', barTo: 'to-amber-400', barText: 'text-slate-950' }; // Adecuada
+            }
+        }
+
         function getStats() {
-            let total = 0, alta = 0, adecuada = 0, baja = 0;
+            const counts = { 'Muy baja': 0, 'Baja': 0, 'Adecuada': 0, 'Alta': 0, 'Muy alta': 0 };
+            let total = 0;
             const factorCounts = {};
 
             state.sprints.forEach(sprint => {
                 if (state.selectedSprints.includes('all') || state.selectedSprints.includes(sprint.id)) {
                     sprint.responses.forEach(resp => {
                         total++;
-                        if (resp.speed === 'Alta') alta++;
-                        else if (resp.speed === 'Adecuada') adecuada++;
-                        else if (resp.speed === 'Baja') baja++;
+                        if (counts.hasOwnProperty(resp.speed)) counts[resp.speed]++;
 
                         resp.factors.forEach(f => {
                             if (f !== "Ninguno" && f !== "Ninguna" && f !== "") {
@@ -955,11 +1102,22 @@
                 name, count: factorCounts[name], percentage: total > 0 ? Math.round((factorCounts[name] / total) * 100) : 0
             })).sort((a, b) => b.count - a.count);
 
+            const pct = (n) => total > 0 ? Math.round((n / total) * 100) : 0;
+            const positivo = counts['Alta'] + counts['Muy alta'];
+            const alerta = counts['Baja'] + counts['Muy baja'];
+            const sostenible = counts['Adecuada'] + counts['Alta'] + counts['Muy alta']; // no está en zona de alerta
+
             return {
-                total, alta, adecuada, baja,
-                altaPercent: total > 0 ? Math.round((alta / total) * 100) : 0,
-                adecuadaPercent: total > 0 ? Math.round((adecuada / total) * 100) : 0,
-                bajaPercent: total > 0 ? Math.round((baja / total) * 100) : 0,
+                total, counts,
+                // nombres específicos por nivel (compatibilidad con el resto del código)
+                alta: counts['Alta'], adecuada: counts['Adecuada'], baja: counts['Baja'],
+                muyAlta: counts['Muy alta'], muyBaja: counts['Muy baja'],
+                altaPercent: pct(counts['Alta']), adecuadaPercent: pct(counts['Adecuada']), bajaPercent: pct(counts['Baja']),
+                muyAltaPercent: pct(counts['Muy alta']), muyBajaPercent: pct(counts['Muy baja']),
+                // agrupados
+                positivo, positivoPercent: pct(positivo),
+                alerta, alertaPercent: pct(alerta),
+                sostenible, sosteniblePercent: pct(sostenible),
                 factors: sortedFactors
             };
         }
@@ -1139,7 +1297,7 @@
                 return;
             }
 
-            const positiveRate = stats.adecuadaPercent + stats.altaPercent;
+            const positiveRate = stats.sosteniblePercent;
             const mainBlocker = stats.factors[0];
 
             let status = 'ESTABLE', title = 'SALUD ÓPTIMA: RITMO Y MORAL ESTABLES';
@@ -1211,14 +1369,14 @@
                     <p class="text-[11px] text-slate-500 mt-1.5">Sprints en memoria: ${state.sprints.length}</p>
                 </div>
                 <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 hover:border-slate-700/80 transition-all shadow-sm">
-                    <div class="flex items-center justify-between"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sentimiento Adecuado</span><div class="p-1.5 bg-yellow-500/10 rounded-lg text-yellow-400"><i data-lucide="check-circle" class="w-4 h-4"></i></div></div>
-                    <div class="mt-3 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-yellow-400">${stats.adecuadaPercent}%</span><span class="text-xs text-slate-400">${stats.adecuada} respuestas</span></div>
-                    <p class="text-[11px] text-slate-500 mt-1.5">Velocidad estándar confortable</p>
+                    <div class="flex items-center justify-between"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sentimiento Positivo</span><div class="p-1.5 bg-emerald-500/10 rounded-lg text-emerald-400"><i data-lucide="check-circle" class="w-4 h-4"></i></div></div>
+                    <div class="mt-3 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-emerald-400">${stats.positivoPercent}%</span><span class="text-xs text-slate-400">${stats.positivo} respuestas</span></div>
+                    <p class="text-[11px] text-slate-500 mt-1.5">Velocidad Alta o Muy alta</p>
                 </div>
                 <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 hover:border-slate-700/80 transition-all shadow-sm">
-                    <div class="flex items-center justify-between"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sentimiento de Alerta (Bajo)</span><div class="p-1.5 bg-rose-500/10 rounded-lg text-rose-400"><i data-lucide="shield-alert" class="w-4 h-4"></i></div></div>
-                    <div class="mt-3 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-rose-400">${stats.bajaPercent}%</span><span class="text-xs text-slate-400">${stats.baja} respuestas</span></div>
-                    <p class="text-[11px] text-rose-500/80 mt-1.5">Obstáculos críticos reportados</p>
+                    <div class="flex items-center justify-between"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sentimiento de Alerta</span><div class="p-1.5 bg-rose-500/10 rounded-lg text-rose-400"><i data-lucide="shield-alert" class="w-4 h-4"></i></div></div>
+                    <div class="mt-3 flex items-baseline gap-2"><span class="text-3xl font-extrabold text-rose-400">${stats.alertaPercent}%</span><span class="text-xs text-slate-400">${stats.alerta} respuestas</span></div>
+                    <p class="text-[11px] text-rose-500/80 mt-1.5">Velocidad Baja o Muy baja</p>
                 </div>
                 <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 hover:border-slate-700/80 transition-all shadow-sm">
                     <div class="flex items-center justify-between"><span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Fricción Principal</span><div class="p-1.5 bg-amber-500/10 rounded-lg text-amber-400"><i data-lucide="alert-triangle" class="w-4 h-4"></i></div></div>
@@ -1230,18 +1388,26 @@
 
         function renderCharts() {
             let html = '';
+            const order = ['Muy alta', 'Alta', 'Adecuada', 'Baja', 'Muy baja'];
             state.sprints.forEach(sprint => {
                 const total = sprint.responses.length;
-                const alta = sprint.responses.filter(r => r.speed === 'Alta').length;
-                const adecuada = sprint.responses.filter(r => r.speed === 'Adecuada').length;
-                const baja = sprint.responses.filter(r => r.speed === 'Baja').length;
-                
-                const altaP = total > 0 ? Math.round((alta / total) * 100) : 0;
-                const adecP = total > 0 ? Math.round((adecuada / total) * 100) : 0;
-                const bajaP = total > 0 ? Math.round((baja / total) * 100) : 0;
+                const counts = {};
+                order.forEach(level => counts[level] = sprint.responses.filter(r => r.speed === level).length);
 
                 // Verificamos si este sprint en específico está dentro de los seleccionados
                 const isSelected = state.selectedSprints.includes(sprint.id);
+
+                const segmentsHtml = order.map(level => {
+                    const n = counts[level];
+                    if (n === 0) return '';
+                    const p = total > 0 ? Math.round((n / total) * 100) : 0;
+                    const s = speedStyle(level);
+                    return `<div style="width: ${p}%" class="bg-gradient-to-r ${s.barFrom} ${s.barTo} h-full flex items-center justify-center text-[10px] ${s.barText} font-black transition-all hover:opacity-90">${p}%</div>`;
+                }).join('');
+
+                const legendHtml = order.filter(level => counts[level] > 0).map(level =>
+                    `<span class="${speedStyle(level).text} hidden sm:inline">${level}: ${counts[level]}</span>`
+                ).join('');
 
                 html += `
                     <div class="space-y-2 p-2 -mx-2 rounded-lg transition-all cursor-pointer border ${isSelected ? 'bg-slate-800/50 border-teal-500/30' : 'border-transparent hover:bg-slate-800/30'}" onclick="handleChartClick('${sprint.id}', '${sprint.name}')" title="Haz clic para seleccionar/quitar ${sprint.name}">
@@ -1252,15 +1418,11 @@
                                 ${isSelected ? '<i data-lucide="check-circle" class="w-3.5 h-3.5 text-teal-500"></i>' : ''}
                             </div>
                             <div class="flex gap-3 font-semibold text-[11px]">
-                                <span class="text-emerald-400 hidden sm:inline">Alta: ${alta}</span>
-                                <span class="text-yellow-400 hidden sm:inline">Adecuada: ${adecuada}</span>
-                                <span class="text-rose-400 hidden sm:inline">Baja: ${baja}</span>
+                                ${legendHtml}
                             </div>
                         </div>
                         <div class="h-6 w-full rounded-lg bg-slate-800/60 overflow-hidden flex shadow-inner border border-slate-700/30">
-                            ${alta > 0 ? `<div style="width: ${altaP}%" class="bg-gradient-to-r from-emerald-500 to-emerald-400 h-full flex items-center justify-center text-[10px] text-emerald-950 font-black transition-all hover:opacity-90">${altaP}%</div>` : ''}
-                            ${adecuada > 0 ? `<div style="width: ${adecP}%" class="bg-gradient-to-r from-yellow-500 to-amber-400 h-full flex items-center justify-center text-[10px] text-slate-950 font-black transition-all hover:opacity-90">${adecP}%</div>` : ''}
-                            ${baja > 0 ? `<div style="width: ${bajaP}%" class="bg-gradient-to-r from-rose-500 to-red-400 h-full flex items-center justify-center text-[10px] text-rose-950 font-black transition-all hover:opacity-90">${bajaP}%</div>` : ''}
+                            ${segmentsHtml}
                         </div>
                     </div>
                 `;
@@ -1292,7 +1454,7 @@
                 comments.forEach(c => {
                     const sentiment = getSentiment(c.observation);
                     const badgeColor = sentiment === 'positive' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : sentiment === 'negative' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-teal-400 bg-teal-500/10 border-teal-500/20';
-                    const speedColor = c.speed === 'Alta' ? 'text-emerald-400' : c.speed === 'Adecuada' ? 'text-yellow-400' : 'text-rose-400';
+                    const speedColor = speedStyle(c.speed).text;
                     
                     html += `
                         <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-4 flex flex-col justify-between hover:border-slate-700 transition-all">
@@ -1329,7 +1491,7 @@
 
             let insightMsg = '';
             if (total === 0) insightMsg = "No hay comentarios suficientes en los registros activos para generar un diagnóstico cualitativo de texto.";
-            else if (neg > pos) insightMsg = `<span class="text-rose-300">El equipo SWAT expresa mayor preocupación en las observaciones escritas por reprocesos generados al cambiar el foco técnico, interrupciones de estimaciones e inconsistencias documentales.</span>`;
+            else if (neg > pos) insightMsg = `<span class="text-rose-300">El equipo ${state.viewingTeamName} expresa mayor preocupación en las observaciones escritas por reprocesos generados al cambiar el foco técnico, interrupciones de estimaciones e inconsistencias documentales.</span>`;
             else insightMsg = `<span class="text-emerald-300">El equipo valora positivamente la ayuda mutua del soporte técnico de infraestructura y el correcto desarrollo de los flujos de trabajo cuando se cuenta con estabilidad operativa.</span>`;
 
             const html = `
@@ -1391,7 +1553,7 @@
                     else if(sentiment === 'neutral') sentimentBadge = `<span class="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold uppercase">Neutral</span>`;
                     else sentimentBadge = `<span class="text-[9px] bg-slate-800/60 text-slate-500 border border-slate-800 px-1.5 py-0.5 rounded font-bold uppercase">Sin Comentario</span>`;
 
-                    const speedClass = r.speed === 'Alta' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : r.speed === 'Adecuada' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                    const sst = speedStyle(r.speed); const speedClass = sst.bg + ' ' + sst.text + ' ' + sst.border;
 
                     const factorsHtml = r.factors.map(f => `<span class="text-[9px] bg-slate-800/80 text-slate-400 px-1.5 py-0.5 rounded border border-slate-700/50">${f}</span>`).join('');
 
@@ -1424,7 +1586,7 @@
             const r = state.selectedResponse;
             let html = '';
             if (r) {
-                const speedClass = r.speed === 'Alta' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : r.speed === 'Adecuada' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                const sst = speedStyle(r.speed); const speedClass = sst.bg + ' ' + sst.text + ' ' + sst.border;
                 const factorsHtml = r.factors.map(f => `<span class="text-[10px] bg-slate-950 text-slate-300 px-2.5 py-1 rounded border border-slate-800 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>${f}</span>`).join('');
                 
                 const hasObs = r.observation && !["na", "n/a", "none", "ninguna", "ninguna.", "ninguno"].includes(r.observation.toLowerCase().trim());
@@ -1558,7 +1720,8 @@
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.href = url;
-                link.download = `pulso_velocidad_swat_${new Date().toISOString().split('T')[0]}.csv`;
+                const teamSlug = state.viewingTeamName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '_');
+                link.download = `pulso_velocidad_${teamSlug}_${new Date().toISOString().split('T')[0]}.csv`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -1749,9 +1912,11 @@
                     let factorsList = rawFactors ? rawFactors.toString().split(/[;,]/).map(f => f.trim()).filter(f => f !== "") : [];
                     if (factorsList.length === 0) factorsList = ["Ninguno"];
 
-                    let speedValue = (row[speedHeader] || "Adecuada").toString().trim();
-                    if (speedValue.toLowerCase() === "alta") speedValue = "Alta";
-                    else if (speedValue.toLowerCase() === "baja" || speedValue.toLowerCase() === "baja / con retrasos") speedValue = "Baja";
+                    let speedValue = (row[speedHeader] || "Adecuada").toString().trim().toLowerCase();
+                    if (speedValue === "muy alta" || speedValue === "muy_alta") speedValue = "Muy alta";
+                    else if (speedValue === "alta") speedValue = "Alta";
+                    else if (speedValue === "muy baja" || speedValue === "muy_baja") speedValue = "Muy baja";
+                    else if (speedValue === "baja" || speedValue.includes("con retrasos")) speedValue = "Baja";
                     else speedValue = "Adecuada";
 
                     return {
@@ -1787,9 +1952,17 @@
         }
 
         // Run: no llamamos a init() aquí — se dispara desde afterLogin() una vez hay sesión y equipo.
+        document.getElementById('testTokenInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkTestToken();
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            if (DEV_MODE) devModeInit();
+            if (DEV_MODE) {
+                document.getElementById('authGate').classList.add('hidden');
+                document.getElementById('testTokenGate').classList.remove('hidden');
+                document.getElementById('testTokenGate').classList.add('flex');
+            }
         });
     </script>
 </body>
