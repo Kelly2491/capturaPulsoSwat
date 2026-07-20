@@ -1754,9 +1754,7 @@
             }
             document.getElementById('uploadSprintName').value = `Sprint ${nextNumber}`;
             
-            const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-            const date = new Date();
-            document.getElementById('uploadSprintPeriod').value = `${meses[date.getMonth()]} ${date.getFullYear()}`;
+            document.getElementById('uploadSprintPeriod').value = formatMonthYearEs(new Date());
             
             clearUploadFile();
             document.getElementById('uploadError').classList.add('hidden');
@@ -1847,6 +1845,7 @@
                         const firstSheetName = workbook.SheetNames[0];
                         const worksheet = workbook.Sheets[firstSheetName];
                         state.rawCSVText = XLSX.utils.sheet_to_csv(worksheet);
+                        autoFillSprintInfo(file.name);
                     } catch(error) {
                         errDiv.innerText = "Error al leer el archivo Excel. Verifica que no esté corrupto.";
                         errDiv.classList.remove('hidden');
@@ -1855,11 +1854,59 @@
                 };
                 reader.readAsArrayBuffer(file);
             } else {
-                reader.onload = (event) => { state.rawCSVText = event.target.result; };
+                reader.onload = (event) => { state.rawCSVText = event.target.result; autoFillSprintInfo(file.name); };
                 reader.readAsText(file, 'UTF-8');
             }
             
             lucide.createIcons();
+        }
+
+        // Intenta adivinar el nombre del sprint (del nombre del archivo) y el
+        // periodo (de la fecha más antigua dentro del archivo), y reemplaza
+        // la adivinanza genérica que se puso al abrir el modal.
+        function autoFillSprintInfo(fileName) {
+            const nameInput = document.getElementById('uploadSprintName');
+            const periodInput = document.getElementById('uploadSprintPeriod');
+
+            const m = fileName.match(/sprint\s*(\d+)/i);
+            if (m) nameInput.value = `Sprint ${m[1]}`;
+
+            if (state.rawCSVText) {
+                try {
+                    const { headers, data } = parseCSV(state.rawCSVText);
+                    const dateHeader = headers.find(h => /fecha|marca temporal|timestamp/i.test(h));
+                    if (dateHeader) {
+                        const dates = data.map(row => parseFlexibleDate(row[dateHeader])).filter(d => d && !isNaN(d.getTime()));
+                        if (dates.length) {
+                            dates.sort((a, b) => a - b);
+                            periodInput.value = formatMonthYearEs(dates[0]);
+                        }
+                    }
+                } catch (e) { /* si no se puede leer, se deja el valor por defecto para editar a mano */ }
+            }
+        }
+
+        function parseFlexibleDate(str) {
+            if (!str) return null;
+            str = str.toString().trim();
+            let m = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); // dd/mm/yyyy
+            if (m) {
+                let [, d, mo, y] = m;
+                if (y.length === 2) y = '20' + y;
+                return new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+            }
+            m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); // yyyy-mm-dd
+            if (m) {
+                let [, y, mo, d] = m;
+                return new Date(parseInt(y), parseInt(mo) - 1, parseInt(d));
+            }
+            const parsed = new Date(str);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatMonthYearEs(date) {
+            const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            return `${meses[date.getMonth()]} ${date.getFullYear()}`;
         }
 
         function parseCSV(text) {
